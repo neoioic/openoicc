@@ -2,7 +2,7 @@
 
 OICC 是正在开发的 OIOIC 节点与构造代码生成工具，使用 C11 和 OIOIC 对象模型实现。目标是读取节点继承声明，生成面向当前 OIOIC API 的 C 构造代码，并提供节点骨架创建能力。
 
-目前已建立独立的源码依赖、参考示例、文档与构建基础，生成器和命令行功能尚未实现。首次构建不需要其他仓库、旧 oicc 二进制或联网下载依赖。
+目前已实现节点骨架创建、C 注释标记解析、继承校验、构造区预览/更新和自举再生，并提供生成代码运行及失败清理回归。首次构建不需要其他仓库、旧 oicc 二进制或联网下载依赖。命令、支持语法与一致性边界见 [oicc 使用说明](docs/oicc.md)。
 
 ## 构建参考程序
 
@@ -14,7 +14,13 @@ xmake -P . oioic_reference
 xmake run -P . oioic_reference
 ```
 
-Linux 可将配置命令替换为 `xmake f -P . --toolchain=gcc -m debug`。详细流程与实际验证边界见 [构建说明](docs/build.md)。默认 `xmake -P .` 只构建 OIOIC 静态库；参考程序需要显式选择。
+Linux 可将配置命令替换为 `xmake f -P . --toolchain=gcc -m debug`。详细流程与实际验证边界见 [构建说明](docs/build.md)。默认 `xmake -P .` 构建 oicc 及 OIOIC 静态库；参考程序需要显式选择。
+
+```sh
+xmake -P . oicc
+xmake run -P . oicc --help
+python tests/test_oicc.py --oicc build/mingw/x86_64/debug/oicc.exe
+```
 
 ## 项目资料
 

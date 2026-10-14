@@ -6,7 +6,14 @@ set_objectdir(path.join(os.scriptdir(), "build/.objs/$(target)/$(plat)/$(arch)/$
 
 includes("third_party/oioic/src")
 
--- The generator is not implemented yet. This target verifies the local runtime.
+target("oicc")
+    set_kind("binary")
+    add_deps("oioic")
+    add_includedirs("include")
+    add_files("src/**.c")
+    set_warnings("all")
+    set_rundir(os.scriptdir())
+
 target("oioic_reference")
     set_kind("binary")
     set_default(false)

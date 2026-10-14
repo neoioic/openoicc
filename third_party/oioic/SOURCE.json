@@ -1,0 +1,128 @@
+{
+    "project":  "OIOIC",
+    "version":  "1.0.18",
+    "revision":  "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+    "imported_on":  "2026-10-14",
+    "files":  [
+                  {
+                      "source":  "examples/multiple_inheritance/Factory.c",
+                      "destination":  "examples/oioic_reference/Factory.c",
+                      "sha256":  "70c1b2449b818fab7df1c62f0c53776b136adb0aeecc6563dbf8ded103290935"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/Factory.h",
+                      "destination":  "examples/oioic_reference/Factory.h",
+                      "sha256":  "96571245669e7b54d89ec62cb9b9269d4b2a1b05a715d79d1b69167bf393f5cf"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/ho.c",
+                      "destination":  "examples/oioic_reference/ho.c",
+                      "sha256":  "b919f5d4f46724a823e0743160f86871634f3ad66bef6588998aedc0c8b132f6"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/ho.h",
+                      "destination":  "examples/oioic_reference/ho.h",
+                      "sha256":  "72e5b75b14363429212a7b7538cf1614c7ff617db34bc53becaff3e68befe8ce"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/se/se.h",
+                      "destination":  "examples/oioic_reference/se/se.h",
+                      "sha256":  "5e9df83d971859b98a696b3896bff138ca8774ff4d292ccd98c026d254a0797a"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/so/ao/ao.h",
+                      "destination":  "examples/oioic_reference/so/ao/ao.h",
+                      "sha256":  "570f26f7ec1be18d9a1dfafdb3eca99cedbcc3daaac76ceecabbb1a8151dec1d"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/so/ao/Main/Main.c",
+                      "destination":  "examples/oioic_reference/so/ao/Main/Main.c",
+                      "sha256":  "5f004e68ca596c785f4e3b767d0d72eebbb9d61478f923c9744b3cc1a2ea6996"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/so/ao/Main/Main.h",
+                      "destination":  "examples/oioic_reference/so/ao/Main/Main.h",
+                      "sha256":  "230a18c5276f2ca6790ea38fa5907ebfcc241362315f89d3ca3f1420c22eb31c"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/so/go/amphicar/amphicar.c",
+                      "destination":  "examples/oioic_reference/so/go/amphicar/amphicar.c",
+                      "sha256":  "67bbacd6d99ef1d1c2481f5c6a542524aa7923b60adf9233bcf9cd5f57256282"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/so/go/amphicar/amphicar.h",
+                      "destination":  "examples/oioic_reference/so/go/amphicar/amphicar.h",
+                      "sha256":  "631436d9d7dfcfd3c7ffb31107f0feab2269b9706c6875f5a6ea59318154beb8"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/so/go/car/car.c",
+                      "destination":  "examples/oioic_reference/so/go/car/car.c",
+                      "sha256":  "192512b1a5485cab156317d81d70b2feb9eeccb32e9c8929f437db928b10bea5"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/so/go/car/car.h",
+                      "destination":  "examples/oioic_reference/so/go/car/car.h",
+                      "sha256":  "dc1fbc40f3ef120e8b1d003b7541e0863c56fb2a62f97f430b894c6358bd50dc"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/so/go/go.h",
+                      "destination":  "examples/oioic_reference/so/go/go.h",
+                      "sha256":  "00c4734fc2b88a16d67d0ba1e605b85f4942b3918449c06fc97ee1455a239d1e"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/so/go/ship/ship.c",
+                      "destination":  "examples/oioic_reference/so/go/ship/ship.c",
+                      "sha256":  "f3e2726c672a6952a96e33ea2bcce120d990c62b2f605e0d83c571f9d7ac4bfa"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/so/go/ship/ship.h",
+                      "destination":  "examples/oioic_reference/so/go/ship/ship.h",
+                      "sha256":  "ddba916675ec21d8f59685e3cdba6d698d8b5b1152204184737de461f8250f55"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/so/go/vehicle/vehicle.c",
+                      "destination":  "examples/oioic_reference/so/go/vehicle/vehicle.c",
+                      "sha256":  "3a3041938fb746261038c6fa3056222020c54b90dcc9da1c36311eb5faa9a1c2"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/so/go/vehicle/vehicle.h",
+                      "destination":  "examples/oioic_reference/so/go/vehicle/vehicle.h",
+                      "sha256":  "ac462842716f9a7f942a4d2d78f8febf08b6b533377c2aa1c15bffbf71a27de3"
+                  },
+                  {
+                      "source":  "examples/multiple_inheritance/so/so.h",
+                      "destination":  "examples/oioic_reference/so/so.h",
+                      "sha256":  "c5965c44f92a4fa2782a50333aa5b35da6ddbf2f5b567e1fb6152f56792eb872"
+                  },
+                  {
+                      "source":  "include/o.h",
+                      "destination":  "third_party/oioic/include/o.h",
+                      "sha256":  "cfe7d0ee3a46cc43d592c9e47a8a6fae38223142b0e07c325118cd2dd277ddc4"
+                  },
+                  {
+                      "source":  "include/oioic.h",
+                      "destination":  "third_party/oioic/include/oioic.h",
+                      "sha256":  "c6fc0ab8200f9765beaeb33e0d9142ed4eba085210afa7d5c2c3f6e156cebb35"
+                  },
+                  {
+                      "source":  "LICENSE",
+                      "destination":  "third_party/oioic/LICENSE",
+                      "sha256":  "5c5b2b603bc4db1422ca0dcec021f3f891c2097e9d279abcc49fd48537c03f92"
+                  },
+                  {
+                      "source":  "src/o.c",
+                      "destination":  "third_party/oioic/src/o.c",
+                      "sha256":  "50ffa4e7dc2a75d7a7f012c75bd1d85496ddd5d980cce1f40204f5d0708ae83c"
+                  },
+                  {
+                      "source":  "src/oioic.c",
+                      "destination":  "third_party/oioic/src/oioic.c",
+                      "sha256":  "a8e7e4fe9a94714111cfaab6af087fbaa44d4ac07181926c4d7accaecd8b7793"
+                  },
+                  {
+                      "source":  "src/xmake.lua",
+                      "destination":  "third_party/oioic/src/xmake.lua",
+                      "sha256":  "b2164c7029bd8ed028002a413158f97f23a63f70d0892ea8d7963ee9ab4b3458"
+                  }
+              ]
+}

@@ -1,0 +1,8 @@
+local core_dir = os.scriptdir()
+target("oioic")
+    set_kind("static")
+    set_languages("c11")
+    add_files(path.join(core_dir, "o.c"), path.join(core_dir, "oioic.c"))
+    add_includedirs(path.join(core_dir, "../include"), {public = true})
+    add_headerfiles(path.join(core_dir, "../include/*.h"))
+    set_warnings("all")

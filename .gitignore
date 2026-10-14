@@ -1,0 +1,28 @@
+# Build trees and xmake's machine-local configuration.
+build/
+.xmake/
+
+# Compiler and linker artifacts; generated C sources remain tracked.
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.pdb
+*.ilk
+*.exp
+
+# Personal editor settings and local environment files.
+.vscode/
+.idea/
+*.swp
+*.swo
+.env
+.env.local
+.env.*.local
+.DS_Store
+Thumbs.db

@@ -1,4 +1,4 @@
-set_project("oicc")
+set_project("openoicc")
 set_languages("c11")
 add_rules("mode.debug", "mode.release")
 set_targetdir(path.join(os.scriptdir(), "build/$(plat)/$(arch)/$(mode)"))
@@ -6,7 +6,7 @@ set_objectdir(path.join(os.scriptdir(), "build/.objs/$(target)/$(plat)/$(arch)/$
 
 includes("third_party/oioic/src")
 
-target("oicc")
+target("openoicc")
     set_kind("binary")
     add_deps("oioic")
     add_includedirs("include")

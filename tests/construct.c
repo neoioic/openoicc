@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 #include <stdio.h>
 #include "alloc.h"
-#include "oicc/construct.h"
+#include "openoicc/construct.h"
 
 extern void tog_oioic(struct object *);
 #define CHECK(x) do { if (!(x)) { fprintf(stderr, "line %d: %s\n", __LINE__, #x); return 1; } } while (0)
@@ -11,12 +11,12 @@ int main(void)
 	const unsigned short base[] = { 1 };
 	const unsigned short invalid[] = { 2 };
 	const unsigned short self[] = { 0 };
-	const struct oicc_layout valid[] = {
+	const struct openoicc_layout valid[] = {
 		{ 2, tog_oioic, 0, 1, 1, base, 1, base, 1 },
 		{ MSN_OIOIC, tog_oioic, OIOIC_ALIGNED_SIZE(struct em_oioic),
 		  _Alignof(struct em_oioic), 2, NULL, 0, NULL, 0 }
 	};
-	struct oicc_layout layout[2];
+	struct openoicc_layout layout[2];
 	struct object *object;
 	uint64_t oid;
 	union { max_align_t align; unsigned char bytes[4096]; } external;
@@ -53,7 +53,7 @@ int main(void)
 			test_calls = 0;
 			object = (struct object *)(uintptr_t)1;
 			memset(external.bytes, 0xa5, sizeof(external.bytes));
-			CHECK(RN(oicc_construct(layout, 2, &oid, 0, 0, 1,
+			CHECK(RN(openoicc_construct(layout, 2, &oid, 0, 0, 1,
 				dynamic ? &object : NULL, dynamic ? NULL : external.bytes)));
 			CHECK(oid == 100 && test_calls == 0 && !test_live);
 			if (dynamic)
@@ -63,35 +63,35 @@ int main(void)
 		}
 	}
 	oid = 100;
-	CHECK(RN(oicc_construct(NULL, 2, &oid, 0, 0, 1, &object, NULL)));
-	CHECK(RN(oicc_construct(valid, 0, &oid, 0, 0, 1, &object, NULL)));
-	CHECK(RN(oicc_construct(valid, USHRT_MAX + (size_t)1, &oid, 0, 0, 1, &object, NULL)));
+	CHECK(RN(openoicc_construct(NULL, 2, &oid, 0, 0, 1, &object, NULL)));
+	CHECK(RN(openoicc_construct(valid, 0, &oid, 0, 0, 1, &object, NULL)));
+	CHECK(RN(openoicc_construct(valid, USHRT_MAX + (size_t)1, &oid, 0, 0, 1, &object, NULL)));
 	for (int capacity = -1; capacity <= 0; capacity++)
-		CHECK(RN(oicc_construct(valid, 2, &oid, 0, 0, capacity, &object, NULL)));
-	CHECK(RN(oicc_construct(valid, 2, &oid, 0, 0, INT_MAX, &object, NULL)));
+		CHECK(RN(openoicc_construct(valid, 2, &oid, 0, 0, capacity, &object, NULL)));
+	CHECK(RN(openoicc_construct(valid, 2, &oid, 0, 0, INT_MAX, &object, NULL)));
 	oid = 0;
-	CHECK(RN(oicc_construct(valid, 2, &oid, 0, 0, 1, &object, NULL)));
+	CHECK(RN(openoicc_construct(valid, 2, &oid, 0, 0, 1, &object, NULL)));
 	/* Last valid contiguous block, then one past it. */
 	oid = UINT16_MAX - 2;
-	CHECK(RP(oicc_construct(valid, 2, &oid, 0, 0, 1, &object, NULL)));
+	CHECK(RP(openoicc_construct(valid, 2, &oid, 0, 0, 1, &object, NULL)));
 	CHECK(oid == UINT16_MAX && object->oid == UINT16_MAX - 2);
 	free(object);
-	CHECK(oicc_construct(valid, 2, &oid, 0, 0, 1, &object, NULL) == RN_LACKOID);
+	CHECK(openoicc_construct(valid, 2, &oid, 0, 0, 1, &object, NULL) == RN_LACKOID);
 	CHECK(!object && !test_live);
 	/* Alignment padding and multiplication exact limits without allocation. */
 	for (size_t alignment = 1; alignment <= _Alignof(max_align_t); alignment *= 2) {
 		for (size_t start = 0; start < 2 * alignment; start++) {
 			size_t size = start, offset;
-			CHECK(oicc_reserve(&size, 3, 7, alignment, &offset));
+			CHECK(openoicc_reserve(&size, 3, 7, alignment, &offset));
 			CHECK(offset >= start && offset - start < alignment);
 			CHECK(offset % alignment == 0 && size == offset + 21);
 		}
 	}
 	size_t size = 0, offset;
-	CHECK(oicc_reserve(&size, 1, SIZE_MAX, 1, &offset));
+	CHECK(openoicc_reserve(&size, 1, SIZE_MAX, 1, &offset));
 	CHECK(size == SIZE_MAX && offset == 0);
-	CHECK(!oicc_reserve(&size, 1, 1, 1, &offset));
-	CHECK(!oicc_reserve(&size, 0, 0, 0, &offset));
+	CHECK(!openoicc_reserve(&size, 1, 1, 1, &offset));
+	CHECK(!openoicc_reserve(&size, 0, 0, 0, &offset));
 	puts("constructor boundary checks passed");
 	return 0;
 }

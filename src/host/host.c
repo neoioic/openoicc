@@ -22,7 +22,7 @@ int host_create_object(unsigned short model_id, unsigned int input_capacity,
 			break;
 	if (i == UINT16_MAX - 1)
 		return RN_LACKOID;
-	oid = OID_OICC + i;
+	oid = OID_OPENOICC + i;
 	result = crt_project(&oid, input_capacity, output_capacity,
 			     caller_capacity, object_out, exotic_memory);
 	if (RP(result))

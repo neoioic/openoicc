@@ -2,14 +2,14 @@
  * Checked layout shared by the bootstrap host and generated constructors.
  * The caller owns external storage; queue buffers always belong to the object.
  */
-#ifndef OICC_CONSTRUCT_H
-#define OICC_CONSTRUCT_H
+#ifndef OPENOICC_CONSTRUCT_H
+#define OPENOICC_CONSTRUCT_H
 
 #include <limits.h>
 #include <string.h>
 #include "oioic.h"
 
-struct oicc_layout {
+struct openoicc_layout {
 	unsigned short model_id;
 	void (*bind)(struct object *);
 	size_t member_size;
@@ -22,7 +22,7 @@ struct oicc_layout {
 };
 
 /* Reserve aligned blocks without overflowing either padding or multiplication. */
-static inline int oicc_reserve(size_t *size, size_t count, size_t unit,
+static inline int openoicc_reserve(size_t *size, size_t count, size_t unit,
 			       size_t alignment, size_t *offset)
 {
 	size_t padding;
@@ -39,7 +39,7 @@ static inline int oicc_reserve(size_t *size, size_t count, size_t unit,
 	return 1;
 }
 
-static inline int oicc_construct(const struct oicc_layout *layout, size_t count,
+static inline int openoicc_construct(const struct openoicc_layout *layout, size_t count,
 		uint64_t *object_id, unsigned int input_capacity,
 		unsigned int output_capacity, int caller_capacity,
 		struct object **object_out, unsigned char *exotic_memory)
@@ -59,11 +59,11 @@ static inline int oicc_construct(const struct oicc_layout *layout, size_t count,
 	/* Do not let the low node field wrap into the host field. */
 	if (count > UINT16_MAX - (next & UINT16_MAX))
 		return RN_LACKOID;
-	if (!oicc_reserve(&size, count, sizeof(struct object),
+	if (!openoicc_reserve(&size, count, sizeof(struct object),
 			  _Alignof(struct object), &offset))
 		return RN_INVALIDARG;
 	for (i = 0; i < count; i++) {
-		const struct oicc_layout *item = layout + i;
+		const struct openoicc_layout *item = layout + i;
 		if (!item->model_id || !item->bind || !item->seats ||
 		    item->seats > USHRT_MAX / (size_t)caller_capacity ||
 		    item->direct_count > USHRT_MAX || item->base_count > USHRT_MAX ||
@@ -86,13 +86,13 @@ static inline int oicc_construct(const struct oicc_layout *layout, size_t count,
 		for (j = 0; j < item->base_count; j++)
 			if (item->bases[j] >= count || item->bases[j] == i)
 				return RN_INVALIDARG;
-		if (!oicc_reserve(&size, item->direct_count, sizeof(struct object *),
+		if (!openoicc_reserve(&size, item->direct_count, sizeof(struct object *),
 				  _Alignof(struct object *), &offset) ||
-		    !oicc_reserve(&size, item->base_count, sizeof(struct object *),
+		    !openoicc_reserve(&size, item->base_count, sizeof(struct object *),
 				  _Alignof(struct object *), &offset) ||
-		    !oicc_reserve(&size, item->seats * (size_t)caller_capacity,
+		    !openoicc_reserve(&size, item->seats * (size_t)caller_capacity,
 				  sizeof(struct vr), _Alignof(struct vr), &offset) ||
-		    !oicc_reserve(&size, 1, item->member_size,
+		    !openoicc_reserve(&size, 1, item->member_size,
 				  _Alignof(struct object), &offset))
 			return RN_INVALIDARG;
 	}
@@ -104,21 +104,21 @@ static inline int oicc_construct(const struct oicc_layout *layout, size_t count,
 	nodes = (struct object *)memory;
 	size = count * sizeof(struct object);
 	for (i = 0; i < count; i++) {
-		const struct oicc_layout *item = layout + i;
+		const struct openoicc_layout *item = layout + i;
 		struct object *node = nodes + i;
 		item->bind(node);
 		node->model_id = item->model_id;
 		node->oid = next++;
 		node->nodes = nodes;
 		node->node_count = (unsigned short)count;
-		oicc_reserve(&size, item->direct_count, sizeof(struct object *),
+		openoicc_reserve(&size, item->direct_count, sizeof(struct object *),
 			     _Alignof(struct object *), &offset);
 		node->direct_base_count = (unsigned short)item->direct_count;
 		node->direct_bases = item->direct_count ?
 			(struct object **)(memory + offset) : NULL;
 		for (j = 0; j < item->direct_count; j++)
 			node->direct_bases[j] = nodes + item->direct[j];
-		oicc_reserve(&size, item->base_count, sizeof(struct object *),
+		openoicc_reserve(&size, item->base_count, sizeof(struct object *),
 			     _Alignof(struct object *), &offset);
 		node->base_count = (unsigned short)item->base_count;
 		node->bases = item->base_count ?
@@ -127,10 +127,10 @@ static inline int oicc_construct(const struct oicc_layout *layout, size_t count,
 			node->bases[j] = nodes + item->bases[j];
 		node->caller_count =
 			(unsigned short)(item->seats * (size_t)caller_capacity);
-		oicc_reserve(&size, node->caller_count, sizeof(struct vr),
+		openoicc_reserve(&size, node->caller_count, sizeof(struct vr),
 			     _Alignof(struct vr), &offset);
 		node->callers = (struct vr *)(memory + offset);
-		oicc_reserve(&size, 1, item->member_size, _Alignof(struct object), &offset);
+		openoicc_reserve(&size, 1, item->member_size, _Alignof(struct object), &offset);
 		node->members = item->member_size ? memory + offset : NULL;
 		if (item->model_id == MSN_OIOIC)
 			root = node->members;

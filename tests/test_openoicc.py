@@ -1,6 +1,6 @@
 """Black-box regressions; all generated data stays in build/tests/.
 
-Run: python tests/test_oicc.py --oicc build/mingw/x86_64/debug/oicc.exe
+Run: python tests/test_openoicc.py --openoicc build/mingw/x86_64/debug/openoicc.exe
 Requires a C11 gcc on PATH. No original oicc executable is invoked.
 """
 import argparse
@@ -17,10 +17,10 @@ import stat
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser()
-parser.add_argument("--oicc", required=True)
+parser.add_argument("--openoicc", required=True)
 parser.add_argument("--release", action="store_true")
 args, rest = parser.parse_known_args()
-EXE = (ROOT / args.oicc).resolve()
+EXE = (ROOT / args.openoicc).resolve()
 
 
 def run(command, cwd=ROOT):
@@ -35,7 +35,7 @@ def source(name, bases="OIOIC", members=""):
             f'void tog_{name}(struct object *object) {{ (void)object; }}\n')
 
 
-class OiccTest(unittest.TestCase):
+class OpenoiccTest(unittest.TestCase):
     def setUp(self):
         directory = ROOT / "build/tests"
         directory.mkdir(parents=True, exist_ok=True)
@@ -66,8 +66,8 @@ class OiccTest(unittest.TestCase):
         self.assertFalse(list(self.work.glob("*.tmp")))
 
     def test_cli(self):
-        self.invoke("--help")
-        self.invoke("--version")
+        self.assertIn("Usage: openoicc new", self.invoke("--help").stdout)
+        self.assertEqual(self.invoke("--version").stdout.strip(), "OpenOICC 0.1.0")
         for argv in [(), ("wat",), ("generate",), ("generate", "--write"),
                      ("new", "a"), ("check", "--wat")]:
             with self.subTest(argv=argv):
@@ -262,7 +262,7 @@ class OiccTest(unittest.TestCase):
                 created.unlink()
             for failure in range(1, total + 1):
                 env = os.environ.copy()
-                env["OICC_TEST_FAIL_ALLOC"] = str(failure)
+                env["OPENOICC_TEST_FAIL_ALLOC"] = str(failure)
                 result = subprocess.run([str(instrumented), *map(str, command)],
                                         cwd=ROOT, env=env, capture_output=True, timeout=60)
                 with self.subTest(command=command[0], allocation=failure):

@@ -17,7 +17,7 @@ static void report(void)
 static int fail_now(void)
 {
 	if (!initialized) {
-		const char *value = getenv("OICC_TEST_FAIL_ALLOC");
+		const char *value = getenv("OPENOICC_TEST_FAIL_ALLOC");
 		failure = value ? strtol(value, NULL, 10) : 0;
 		initialized = 1;
 		atexit(report);

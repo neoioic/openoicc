@@ -3,7 +3,7 @@
 #include <string.h>
 #include <limits.h>
 #include "ho.h"
-#include "oicc/construct.h"
+#include "openoicc/construct.h"
 #include "alloc.h"
 
 extern int crt_amphicar(uint64_t *, unsigned int, unsigned int, int,
@@ -38,9 +38,9 @@ int main(void)
 	float value;
 	unsigned int quantity;
 	size_t i, offset = SIZE_MAX;
-	CHECK(!oicc_reserve(&offset, 1, 2, 8, &i));
+	CHECK(!openoicc_reserve(&offset, 1, 2, 8, &i));
 	offset = 0;
-	CHECK(!oicc_reserve(&offset, SIZE_MAX, 2, 1, &i));
+	CHECK(!openoicc_reserve(&offset, SIZE_MAX, 2, 1, &i));
 	CHECK(RP(crt_amphicar(&oid, 16, 17, 2, &object, NULL)));
 	CHECK(object && object->node_count == 5 && test_live == 3);
 	CHECK(object->direct_bases[0]->model_id == MSN_CAR);

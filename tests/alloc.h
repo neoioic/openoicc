@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
-#ifndef OICC_TEST_ALLOC_H
-#define OICC_TEST_ALLOC_H
+#ifndef OPENOICC_TEST_ALLOC_H
+#define OPENOICC_TEST_ALLOC_H
 #include <stdlib.h>
 void *test_malloc(size_t size);
 void *test_calloc(size_t count, size_t size);

@@ -20,7 +20,7 @@ int main(void)
 	FILE *file;
 	CHECK(text_append(&old, "original", 8));
 	CHECK(text_append(&output, "replacement", 11));
-	CHECK(text_printf(&collision, "%s.oicc-%lu-0.tmp", target,
+	CHECK(text_printf(&collision, "%s.openoicc-%lu-0.tmp", target,
 			  (unsigned long)task_pid()));
 	file = fopen(collision.data, "wb");
 	CHECK(file && fwrite("sentinel", 1, 8, file) == 8 && fclose(file) == 0);

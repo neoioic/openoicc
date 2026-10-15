@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
-#ifndef OICC_TEXT_H
-#define OICC_TEXT_H
+#ifndef OPENOICC_TEXT_H
+#define OPENOICC_TEXT_H
 #include <stddef.h>
 struct text {
 	char *data;

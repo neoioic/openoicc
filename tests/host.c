@@ -10,7 +10,7 @@
 int main(void)
 {
 	struct object *a, *b;
-	struct vr caller = { OID_OICC, OID_OICC };
+	struct vr caller = { OID_OPENOICC, OID_OPENOICC };
 	uint64_t first = 0;
 	unsigned int capacity, quantity;
 	union { max_align_t alignment; unsigned char bytes[16384]; } external;

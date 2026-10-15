@@ -6,9 +6,9 @@
 
 static void usage(void)
 {
-	puts("Usage: oicc new NAME PATH.c [BASES]\n"
-	     "       oicc check FILE.c...\n"
-	     "       oicc generate [--write] FILE.c...\n"
+	puts("Usage: openoicc new NAME PATH.c [BASES]\n"
+	     "       openoicc check FILE.c...\n"
+	     "       openoicc generate [--write] FILE.c...\n"
 	     "BASES is a quoted comma-separated list (default OIOIC).\n"
 	     "generate previews changes unless --write is specified.");
 }
@@ -16,12 +16,12 @@ static void usage(void)
 int main(int argc, char **argv)
 {
 	struct object *project = NULL;
-	struct vr caller = { OID_OICC, OID_OICC };
+	struct vr caller = { OID_OPENOICC, OID_OPENOICC };
 	struct project_request request;
 	int result, closed, first = 2, write = 0, exit_status;
 	if (argc == 2 && (!strcmp(argv[1], "--help") || !strcmp(argv[1], "--version"))) {
 		if (!strcmp(argv[1], "--version"))
-			puts("oicc 0.1.0");
+			puts("OpenOICC 0.1.0");
 		else
 			usage();
 		return 0;

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
-#ifndef OICC_PROJECT_H
-#define OICC_PROJECT_H
+#ifndef OPENOICC_PROJECT_H
+#define OPENOICC_PROJECT_H
 #include "../support/text.h"
 #include "o.h"
 struct node {

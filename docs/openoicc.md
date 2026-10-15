@@ -1,26 +1,28 @@
-# oicc 0.1 命令与生成契约
+# OpenOICC 0.1 命令与生成契约
 
-oicc 是使用 C11 与 OIOIC 实现的控制台工具。应用宿主管理 OID；项目对象通过 `vo_open`、`vo_interact2`、`vo_close` 协调源码文档、标记解析、继承分析、构造生成和文件提交。文档与节点模型由项目独占，算法使用同一模型，不为每个纯计算步骤创建对象。
+OpenOICC 是使用 C11 与 OIOIC 实现的控制台工具。应用宿主管理 OID；项目对象通过 `vo_open`、`vo_interact2`、`vo_close` 协调源码文档、标记解析、继承分析、构造生成和文件提交。文档与节点模型由项目独占，算法使用同一模型，不为每个纯计算步骤创建对象。
 
 ## 命令
+
+首次使用请先阅读 [用户指南](openoicc-user-guide.md)，其中包含可编译的最小示例与常见问题。正式名称为 OpenOICC，可执行文件名为 `openoicc`，输入语法仍使用 `<oicc>` 标记。
 
 在仓库根目录构建后运行：
 
 ```sh
-xmake -P . oicc
-xmake run -P . oicc --help
-xmake run -P . oicc new boat path/to/boat.c
-xmake run -P . oicc new amphibian path/to/amphibian.c "car, ship"
-xmake run -P . oicc check path/to/car.c path/to/ship.c path/to/amphibian.c
-xmake run -P . oicc generate path/to/car.c path/to/ship.c path/to/amphibian.c
-xmake run -P . oicc generate --write path/to/car.c path/to/ship.c path/to/amphibian.c
+xmake -P . openoicc
+xmake run -P . openoicc --help
+xmake run -P . openoicc new boat path/to/boat.c
+xmake run -P . openoicc new amphibian path/to/amphibian.c "car, ship"
+xmake run -P . openoicc check path/to/car.c path/to/ship.c path/to/amphibian.c
+xmake run -P . openoicc generate path/to/car.c path/to/ship.c path/to/amphibian.c
+xmake run -P . openoicc generate --write path/to/car.c path/to/ship.c path/to/amphibian.c
 ```
 
 `new` 创建 UTF-8、LF、无自有成员的九接口骨架，默认直接基节点为 `OIOIC`。目标目录须已存在，文件名须与节点名一致，不覆盖已有文件。继承列表作为一个逗号分隔的参数传入；创建时校验语法，基节点是否存在由项目校验负责。节点名采用 ASCII 字母开头、随后字母/数字/下划线的名称，根名 `OIOIC` 的所有大小写变体保留。
 
 `check` 解析并校验全部输入，计算构造输出，报告会改变的文件，不写入。`generate` 默认同样只报告计划，只有 `--write` 提交更新。所有非根基节点的 `.c` 必须显式列出，参数顺序不影响同一节点的输出。每个文件对应一个节点；节点名为文件名去掉 `.c`。同名节点和大写后冲突的 `MSN_*` 名称都报错。
 
-退出码：0 成功，1 输入/构造/文件操作失败，2 命令用法错误。诊断包含文件、行、列及原因；部分名称和图诊断指向文件起点。成功校验并不替代 C 编译和业务行为验证。
+退出码：0 成功，1 输入/构造/文件操作失败，2 命令用法错误。源码校验诊断通常包含文件、行、列及原因；部分名称和图诊断指向文件起点，命令或资源错误可能只有原因。成功校验并不替代 C 编译和业务行为验证。
 
 ## 支持的源文件
 
@@ -43,7 +45,7 @@ xmake run -P . oicc generate --write path/to/car.c path/to/ship.c path/to/amphib
 
 ## 输出与运行时
 
-生成的 `crt_name` 接口与仓库当前构造器一致。生成代码包含 `oicc/construct.h`；编译需把仓库 `include/` 及 OIOIC `include/` 加入头文件搜索路径，链接当前 OIOIC 及所有节点业务实现。`construct.h` 是不依赖 oicc 可执行程序的 C11 头文件实现，可随生成源码一同分发并保留 MIT 许可。
+生成的 `crt_name` 接口与仓库当前构造器一致。生成代码包含 `openoicc/construct.h`；编译需把仓库 `include/` 及 OIOIC `include/` 加入头文件搜索路径，链接当前 OIOIC 及所有节点业务实现。`construct.h` 是不依赖 openoicc 可执行程序的 C11 头文件实现，可随生成源码一同分发并保留 MIT 许可。
 
 节点按有序深度优先前序遍历去重，最终派生节点位于首项；直接基节点保持 `<ibn>` 顺序，祖先集合使用同一遍历顺序。共享祖先只分配一份。每个节点的席位倍数为从构造目标到该节点的最长继承路径长度加一。该规则为逐层向基节点的嵌套委托保留外部调用者与各层委托者记录；普通 OBS/SBO 沿用原上下文。一个委托 VO 返回时清除对应祖先上下文，因此先后访问不同分支不累加同时在用席位。此规则覆盖单线程、沿继承方向委托的模型；任意跨分支委托、循环重入及并发调用不在这一容量保证内。
 
@@ -51,7 +53,7 @@ xmake run -P . oicc generate --write path/to/car.c path/to/ship.c path/to/amphib
 
 布局逐块检查尺寸加乘溢出和对齐，自有成员使用 `OIOIC_ALIGNED_SIZE`；超过 `struct object` 对齐的成员明确返回 `RN_INVALIDARG`。`caller_capacity` 必须为正，乘席位倍数后不超过 `USHRT_MAX`。模型编号有编译期范围检查，重复编号在构造时拒绝。输入/输出队列独立分配，容量零禁用，空队列头尾为 NULL。
 
-构造失败不发布动态对象、不消耗 OID，释放本次队列和本体；外部存储失败后清零本次构造区。成功才推进 OID，低 16 位不允许跨入宿主编号。oicc 宿主可回收并重用节点 OID；生成函数的 OID 来源由目标应用宿主管理。
+构造失败不发布动态对象、不消耗 OID，释放本次分配的队列和本体。参数和布局校验失败不会写外部存储；开始初始化后的队列分配失败会清零本次构造区。成功才推进 OID，低 16 位不允许跨入宿主编号。openoicc 宿主可回收并重用节点 OID；生成函数的 OID 来源由目标应用宿主管理。
 
 外部存储的容量和对齐仍由调用者保证，构造接口没有容量参数；不得用 `destroy_object` 释放外部本体。关闭返回 `RN_CLOSEPARTIAL` 时只允许重试关闭，成功清理后再销毁。生成器保留业务接口代码及运行时 OBS/SBO 语义。
 
@@ -66,9 +68,9 @@ xmake run -P . oicc generate --write path/to/car.c path/to/ship.c path/to/amphib
 工具自身构造代码已纳入版本管理，常规构建直接编译，不隐式再生：
 
 ```sh
-xmake run -P . oicc generate --write src/objects/project.c
-xmake -P . oicc
-xmake run -P . oicc generate --write src/objects/project.c
+xmake run -P . openoicc generate --write src/objects/project.c
+xmake -P . openoicc
+xmake run -P . openoicc generate --write src/objects/project.c
 ```
 
 第二次应没有变更。测试还会在 `build/tests/` 中复制工具源码、再生、重新编译并再次检查稳定性。

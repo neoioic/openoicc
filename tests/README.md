@@ -1,4 +1,4 @@
-# oicc 回归验证
+# OpenOICC 回归验证
 
 运行方式与平台记录见 [构建说明](../docs/build.md)。测试使用 Python 标准库和 PATH 中的 GCC，产物全部位于 `build/tests/` 下独占临时目录。测试源码统一使用 LF；CRLF、非法 UTF-8、NUL 等样例以字节或转义字符串动态构造。
 

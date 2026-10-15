@@ -113,7 +113,7 @@ int file_prepare(const char *path, const struct text *text, char **temporary)
 	struct text name = { 0 };
 	FILE *file;
 	int ok;
-	if (!text_printf(&name, "%s.oicc-%lu-%u.tmp", path,
+	if (!text_printf(&name, "%s.openoicc-%lu-%u.tmp", path,
 			 (unsigned long)get_process_id(), serial++))
 		return 0;
 	file = fopen(name.data, "wbx");

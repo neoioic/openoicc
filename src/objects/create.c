@@ -27,7 +27,7 @@ int node_create(const char *name, const char *path, const char *bases)
 		"INPUT", "OUTPUT", "IOPUT", "INTERACT0", "INTERACT1", "INTERACT2", "INTERACT3"
 	};
 #define ADD(...) do { if (!text_printf(&source, __VA_ARGS__)) goto done; } while (0)
-	if (!identifier_valid(name) || !strcmp(name, "OIOIC") || !strcmp(name, "oioic")) {
+	if (!node_name_valid(name)) {
 		fprintf(stderr, "invalid or reserved node name\n");
 		return 0;
 	}

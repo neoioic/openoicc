@@ -35,5 +35,6 @@ int node_generate(struct em_project *project, size_t index);
 int node_create(const char *name, const char *path, const char *bases);
 int node_diagnostic(const struct node *node, size_t offset, const char *reason);
 int identifier_valid(const char *name);
+int node_name_valid(const char *name);
 void tog_project(struct object *object);
 #endif

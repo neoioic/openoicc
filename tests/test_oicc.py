@@ -243,22 +243,35 @@ class OiccTest(unittest.TestCase):
         self.compile(instrumented, [*list((ROOT / "src").rglob("*.c")), *runtime,
                                    ROOT / "tests/tool_alloc.c"],
                      ["-include", ROOT / "tests/tool_alloc.h", "-I", ROOT / "tests"])
+        # Exercise late failures after another file has already been prepared,
+        # and the independent new-node path, not only a single minimal file.
         path = self.write()
-        before = path.read_bytes()
-        result = run([instrumented, "generate", "--write", path])
-        self.assertEqual(result.returncode, 0, result.stderr)
-        total = int(re.search(r"test allocations: (\d+) live: 0", result.stderr).group(1))
-        for failure in range(1, total + 1):
-            with self.subTest(allocation=failure):
-                path.write_bytes(before)
+        other = self.write("b", "a")
+        header = path.with_suffix(".h")
+        header.write_bytes(b'#ifndef A_H\n#define A_H\nstruct em_a { int x; };\n#endif\n')
+        created = self.work / "created.c"
+        for command in [["generate", "--write", path, other],
+                        ["new", "created", created]]:
+            snapshots = {p: p.read_bytes() for p in [path, other]}
+            result = run([instrumented, *command])
+            self.assertEqual(result.returncode, 0, result.stderr)
+            total = int(re.search(r"test allocations: (\d+) live: 0", result.stderr).group(1))
+            for p, data in snapshots.items():
+                p.write_bytes(data)
+            if created.exists():
+                created.unlink()
+            for failure in range(1, total + 1):
                 env = os.environ.copy()
                 env["OICC_TEST_FAIL_ALLOC"] = str(failure)
-                result = subprocess.run([str(instrumented), "generate", "--write", str(path)],
+                result = subprocess.run([str(instrumented), *map(str, command)],
                                         cwd=ROOT, env=env, capture_output=True, timeout=60)
-                self.assertIn(b"live: 0", result.stderr)
-                self.assertEqual(result.returncode, 1, result.stderr)
-                self.assertEqual(path.read_bytes(), before)
-                self.assertFalse(list(self.work.glob("*.tmp")))
+                with self.subTest(command=command[0], allocation=failure):
+                    self.assertIn(b"live: 0", result.stderr)
+                    self.assertEqual(result.returncode, 1, result.stderr)
+                    for p, data in snapshots.items():
+                        self.assertEqual(p.read_bytes(), data)
+                    self.assertFalse(created.exists())
+                    self.assertFalse(list(self.work.glob("*.tmp")))
 
     def test_bootstrap_regeneration(self):
         copied = self.work / "src"
@@ -290,6 +303,281 @@ class OiccTest(unittest.TestCase):
         directory = self.work / "directory.c"
         directory.mkdir()
         self.invoke("check", directory, success=False)
+
+    def test_constructor_layout_boundaries(self):
+        executable = self.work / "construct.exe"
+        self.compile(executable, [ROOT / "tests/construct.c", ROOT / "tests/alloc.c",
+                                  *list((ROOT / "third_party/oioic/src").glob("*.c"))],
+                     ["-I", ROOT / "tests"])
+        result = run([executable])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_exclusive_temp_and_create_collisions(self):
+        executable = self.work / "files.exe"
+        self.compile(executable, [ROOT / "tests/files.c", ROOT / "src/support/text.c"],
+                     ["-I", ROOT / "src"])
+        result = run([executable], cwd=self.work)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_reserved_root_case_variants(self):
+        for name in ["OIOIC", "oioic", "OiOiC", "Oioic", "oiOIC"]:
+            path = self.work / (name + '.c')
+            self.invoke("new", name, path, success=False)
+            self.assertFalse(path.exists())
+            path.write_bytes(source(name).encode())
+            before = path.read_bytes()
+            result = self.invoke("generate", "--write", path, success=False)
+            self.assertIn("reserved", result.stderr)
+            self.assertEqual(path.read_bytes(), before)
+            path.unlink()
+
+    def test_every_truncated_prefix_is_safe(self):
+        # A definition at the end ensures no prefix is a complete input.
+        data = source("a").encode("utf-8")
+        end = data.index(b"}") + 1
+        path = self.work / "a.c"
+        for length in range(end):
+            with self.subTest(length=length):
+                prefix = data[:length]
+                path.write_bytes(prefix)
+                result = self.invoke("generate", "--write", path, success=False)
+                self.assertEqual(result.returncode, 1, result.stderr)
+                self.assertEqual(path.read_bytes(), prefix)
+                self.assertFalse(list(self.work.glob("*.tmp")))
+
+    def test_utf8_invalid_and_valid_boundaries(self):
+        invalid = [b"\x80", b"\xbf", b"\xc0\x80", b"\xc1\xbf",
+                   b"\xc2", b"\xdf", b"\xe0\x9f\xbf", b"\xe0\xa0",
+                   b"\xed\xa0\x80", b"\xef\xbf", b"\xf0\x8f\xbf\xbf",
+                   b"\xf0\x90\x80", b"\xf4\x90\x80\x80", b"\xf5\x80\x80\x80",
+                   b"\xff", b"\xc2A", b"\xe1\x80A", b"\xf1\x80\x80A"]
+        valid = [b"\xc2\x80", b"\xdf\xbf", b"\xe0\xa0\x80", b"\xed\x9f\xbf",
+                 b"\xee\x80\x80", b"\xef\xbf\xbf", b"\xf0\x90\x80\x80",
+                 b"\xf4\x8f\xbf\xbf"]
+        path = self.work / "a.c"
+        for data in invalid + valid:
+            with self.subTest(data=data):
+                before = b"/* " + data + b" */\n" + source("a").encode()
+                path.write_bytes(before)
+                result = self.invoke("check", path, success=data in valid)
+                if data in invalid:
+                    self.assertIn("UTF-8", result.stderr)
+                    header = path.with_suffix(".h")
+                    path.write_bytes(source("a").encode())
+                    header.write_bytes(b"/* " + data + b" */")
+                    self.invoke("generate", "--write", path, success=False)
+                    self.assertEqual(path.read_bytes(), source("a").encode())
+                    header.unlink()
+                else:
+                    self.assertEqual(path.read_bytes(), before)
+
+    def test_marker_insertions_deletions_and_permutations(self):
+        tags = ["<oicc>", "<ibn>", "</ibn>", "<crt>", "</crt>", "</oicc>"]
+        original = source("a")
+        for tag in tags:
+            for mutation in [original.replace(tag, "", 1),
+                             original.replace(tag, tag + tag, 1)]:
+                with self.subTest(tag=tag, mutation=mutation):
+                    path = self.write(content=mutation)
+                    before = path.read_bytes()
+                    self.invoke("generate", "--write", path, success=False)
+                    self.assertEqual(path.read_bytes(), before)
+        rng = random.Random(9219)
+        for _ in range(35):
+            shuffled = tags.copy()
+            rng.shuffle(shuffled)
+            if shuffled == tags:
+                continue
+            text = "\n".join("/* " + tag + " */" for tag in shuffled)
+            path = self.write(content=text + '\nvoid tog_a(struct object *o) {(void)o;}\n')
+            before = path.read_bytes()
+            self.invoke("generate", "--write", path, success=False)
+            self.assertEqual(path.read_bytes(), before)
+
+    def test_region_and_binding_scope(self):
+        for content, reason in [
+                ("void business(void) {\n" + source("a") + "}\n", "file scope"),
+                (source("a") + "{", "braces"),
+                (source("a") + "}", "braces"),
+                (source("a").replace("void tog_a", "int tog_a"), "binding"),
+                (source("a").replace("void tog_a", "avoid tog_a"), "binding"),
+                (source("a").replace("void tog_a", "#define DECL void tog_a"), "macro binding"),
+                (source("a") + "void tog_a(struct object *o) {(void)o;}\n", "binding")]:
+            with self.subTest(reason=reason, content=content):
+                self.invalid(content, reason)
+
+    def test_read_chunk_and_large_source_boundaries(self):
+        for size in [8190, 8191, 8192, 8193, 16383, 16384, 1024 * 1024]:
+            with self.subTest(size=size):
+                prefix = '/*' + 'x' * (size - 5) + '*/\n'
+                path = self.write(content=prefix + source("a") + '// end without newline')
+                self.invoke("generate", "--write", path)
+                after = path.read_bytes()
+                self.assertTrue(after.startswith(prefix.encode()))
+                self.assertTrue(after.endswith(b'// end without newline'))
+                self.invoke("generate", "--write", path)
+                self.assertEqual(after, path.read_bytes())
+
+    def test_bom_blank_lines_and_no_final_newline(self):
+        for prefix in [b"\xef\xbb\xbf", b"\n\n", b"\xef\xbb\xbf\n\n"]:
+            path = self.work / "a.c"
+            path.write_bytes(prefix + source("a").rstrip().encode())
+            self.invoke("generate", "--write", path)
+            after = path.read_bytes()
+            self.assertTrue(after.startswith(prefix))
+            self.assertFalse(after.endswith(b"\n"))
+            timestamp = path.stat().st_mtime_ns
+            self.invoke("generate", "--write", path)
+            self.assertEqual(timestamp, path.stat().st_mtime_ns)
+            self.assertEqual(after, path.read_bytes())
+
+    def test_bare_cr_is_rejected(self):
+        self.invalid(source("a").replace("\n", "\r"), "bare CR")
+        self.invalid(source("a") + '// comment\rint x;', "bare CR")
+
+    def test_header_guard_edge_cases(self):
+        path = self.write()
+        header = path.with_suffix(".h")
+        invalid = ['#ifndef X\n#define Y\n#endif\n',
+                   '#ifndef X\n#define X\n', '#endif\n',
+                   '#ifndef X\n#define X\n#endif\nint outside;\n',
+                   '#ifndef X\n#define X\n#if F\n#endif\n#endif\n',
+                   '#ifndef X\n#define X\n#else\n#endif\n']
+        for content in invalid:
+            with self.subTest(content=content):
+                header.write_bytes(content.encode())
+                before = path.read_bytes()
+                self.invoke("generate", "--write", path, success=False)
+                self.assertEqual(before, path.read_bytes())
+
+    def test_new_scaffold_compiles_and_runs(self):
+        path = self.work / "boat.c"
+        self.invoke("new", "boat", path)
+        (self.work / "host.h").write_bytes(b'#include "oioic.h"\n#define MSN_BOAT 2\n')
+        self.invoke("generate", "--write", path)
+        driver = self.work / "driver.c"
+        driver.write_bytes(b'#include "oioic.h"\n'
+                          b'extern int crt_boat(uint64_t*,unsigned int,unsigned int,int,struct object**,unsigned char*);\n'
+                          b'int main(void) { struct object *o; uint64_t id=10; struct vr v={1,1};\n'
+                          b'if(RN(crt_boat(&id,0,0,1,&o,0)))return 1;\n'
+                          b'if(RN(vo_open(o,&v))||RN(vo_interact0(o,ASK_SHARED,&v))||RN(vo_close(o,&v)))return 2;\n'
+                          b'free(o);return 0;}\n')
+        executable = self.work / "boat.exe"
+        self.compile(executable, [path, driver, *list((ROOT / "third_party/oioic/src").glob("*.c"))])
+        result = run([executable])
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_generated_model_field_limits(self):
+        path = self.work / "boat.c"
+        self.invoke("new", "boat", path)
+        self.invoke("generate", "--write", path)
+        for model in [0, -1, 65536, 4294967295]:
+            with self.subTest(model=model):
+                (self.work / "host.h").write_bytes(f'#define MSN_BOAT {model}\n'.encode())
+                result = run(["gcc", "-std=c11", "-I", ROOT / "include",
+                              "-I", ROOT / "third_party/oioic/include", "-c", path,
+                              "-o", self.work / "invalid.o"])
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("model id out of range", result.stderr)
+
+    def test_generated_overaligned_member_rejected(self):
+        path = self.work / "boat.c"
+        self.invoke("new", "boat", path)
+        (self.work / "host.h").write_bytes(b'#include "boat.h"\n#define MSN_BOAT 2\n')
+        (self.work / "boat.h").write_bytes(b'struct em_boat { _Alignas(64) int value; };\n')
+        self.invoke("generate", "--write", path)
+        driver = self.work / "driver.c"
+        driver.write_bytes(b'#include "oioic.h"\n'
+                          b'extern int crt_boat(uint64_t*,unsigned int,unsigned int,int,struct object**,unsigned char*);\n'
+                          b'int main(void){uint64_t id=10;struct object *o=(void*)1;\n'
+                          b'int r=crt_boat(&id,0,0,1,&o,0);return !(r==RN_INVALIDARG && !o && id==10);}\n')
+        executable = self.work / "aligned.exe"
+        self.compile(executable, [path, driver, *list((ROOT / "third_party/oioic/src").glob("*.c"))])
+        result = run([executable])
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_seeded_arbitrary_byte_inputs(self):
+        rng = random.Random(20261015)
+        path = self.work / "a.c"
+        for case in range(80):
+            data = bytes(rng.randrange(256) for _ in range(rng.randrange(0, 512)))
+            path.write_bytes(data)
+            result = self.invoke("generate", "--write", path, success=False)
+            self.assertEqual(result.returncode, 1, (case, result.stderr))
+            self.assertEqual(data, path.read_bytes())
+            self.assertFalse(list(self.work.glob("*.tmp")))
+
+    def test_wide_shared_graph(self):
+        branches = [self.write(f"branch{i}") for i in range(96)]
+        leaf = self.write("leaf", ','.join(f"branch{i}" for i in range(96)))
+        self.invoke("generate", "--write", leaf, *branches)
+        code = leaf.read_text(encoding="utf-8")
+        self.assertEqual(code.count("extern void tog_oioic"), 1)
+        self.assertEqual(len(re.findall(r"extern void tog_", code)), 98)
+        before = leaf.read_bytes()
+        self.invoke("generate", "--write", *reversed(branches), leaf)
+        self.assertEqual(before, leaf.read_bytes())
+
+    def test_random_generated_graphs_execute(self):
+        # Independent Python oracle checks runtime pointers, ancestors and seats
+        # on several graph shapes, including redundant direct ancestor edges.
+        for seed in [7, 113, 991]:
+            rng = random.Random(seed)
+            count = 12
+            graph = {i: rng.sample(list(range(i + 1, count + 1)),
+                                   min(rng.randrange(1, 5), count - i))
+                     for i in range(count)}
+            def order(start):
+                result = []
+                def visit(i):
+                    if i not in result:
+                        result.append(i)
+                        for base in graph.get(i, []):
+                            visit(base)
+                visit(start)
+                return result
+            paths = []
+            for i, bases in graph.items():
+                name = f"r{i}"
+                p = self.work / f"{name}.c"
+                self.invoke("new", name, p, ','.join('OIOIC' if j == count else f"r{j}" for j in bases))
+                paths.append(p)
+            (self.work / "host.h").write_bytes((''.join(f'#define MSN_R{i} {i+2}\n' for i in range(count))).encode())
+            self.invoke("generate", "--write", *paths)
+            driver = ['#include "oioic.h"', '#include <stdio.h>',
+                      '#define C(x) do { if(!(x)){fprintf(stderr,"line %d\\n",__LINE__);return 1;} }while(0)']
+            driver += [f'extern int crt_r{i}(uint64_t*,unsigned int,unsigned int,int,struct object**,unsigned char*);' for i in range(count)]
+            driver += ['int main(void){struct object *o; uint64_t id=1; struct vr v={1,1};']
+            for start in range(count):
+                nodes = order(start)
+                positions = {value: index for index, value in enumerate(nodes)}
+                seats = {start: 1}
+                for i in range(start, count):
+                    if i in seats:
+                        for b in graph[i]:
+                            seats[b] = max(seats.get(b, 0), seats[i] + 1)
+                driver += [f'C(RP(crt_r{start}(&id,0,0,1,&o,0)));', f'C(o->node_count=={len(nodes)});']
+                for position, i in enumerate(nodes):
+                    model = 1 if i == count else i + 2
+                    driver += [f'C(o[{position}].model_id=={model});',
+                               f'C(o[{position}].caller_count=={seats[i]});',
+                               f'C(o[{position}].base_count=={len(order(i))-1});']
+                    for j, base in enumerate(graph.get(i, [])):
+                        driver += [f'C(o[{position}].direct_bases[{j}]==o+{positions[base]});']
+                    for j, base in enumerate(order(i)[1:]):
+                        driver += [f'C(o[{position}].bases[{j}]==o+{positions[base]});']
+                driver += ['C(RP(vo_open(o,&v))); C(RP(vo_close(o,&v)));',
+                           'for(unsigned i=0;i<o->node_count;i++){C(!o[i].ref_count);',
+                           'for(unsigned j=0;j<o[i].caller_count;j++)C(!o[i].callers[j].cr);}', 'free(o);']
+            driver += ['return 0;}']
+            driver_path = self.work / "oracle.c"
+            driver_path.write_bytes(('\n'.join(driver)+'\n').encode())
+            executable = self.work / "oracle.exe"
+            self.compile(executable, [*paths, driver_path, *list((ROOT / "third_party/oioic/src").glob("*.c"))])
+            result = run([executable])
+            self.assertEqual(result.returncode, 0, (seed, result.stderr))
+            for path in paths:
+                path.unlink()
 
     @unittest.skipUnless(os.name == "nt", "Windows read-only replacement behavior")
     def test_windows_commit_failure_and_recovery(self):

@@ -52,7 +52,7 @@ static inline int oicc_construct(const struct oicc_layout *layout, size_t count,
 
 	if (object_out)
 		*object_out = NULL;
-	if (!object_id || !*object_id || !count || count > USHRT_MAX ||
+	if (!layout || !object_id || !*object_id || !count || count > USHRT_MAX ||
 	    caller_capacity < 1 || (!!object_out == !!exotic_memory))
 		return RN_INVALIDARG;
 	next = *object_id;
@@ -68,6 +68,7 @@ static inline int oicc_construct(const struct oicc_layout *layout, size_t count,
 		    item->seats > USHRT_MAX / (size_t)caller_capacity ||
 		    item->direct_count > USHRT_MAX || item->base_count > USHRT_MAX ||
 		    !item->member_alignment ||
+		    (item->member_alignment & (item->member_alignment - 1)) ||
 		    item->member_alignment > _Alignof(struct object))
 			return RN_INVALIDARG;
 		if ((item->direct_count && !item->direct) ||

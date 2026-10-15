@@ -11,4 +11,4 @@
 
 原 MIT 版权声明为 `Copyright (c) 2026 赵平智`，源码中的历史作者与版权声明原样保留。根目录项目许可证另见 [LICENSE](LICENSE)。分发上述源码、示例及实质性衍生内容时，附带相应版权和许可声明。
 
-原文件来源路径与导入校验值记录在 [SOURCE.json](third_party/oioic/SOURCE.json)。本项目没有导入上游生成器二进制；新 OICC 工具将独立实现。
+原文件来源路径与导入校验值记录在 [SOURCE.json](third_party/oioic/SOURCE.json)。本项目没有导入上游生成器二进制；OICC 工具已独立实现初版。OIOIC 核心继续作为生产依赖，参考示例继续作为生成代码的行为对照基线；以上材料及其许可、来源记录均仍在使用。

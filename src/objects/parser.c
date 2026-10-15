@@ -18,6 +18,18 @@ int identifier_valid(const char *name)
 	return 1;
 }
 
+int node_name_valid(const char *name)
+{
+	const char *root = "OIOIC";
+	if (!identifier_valid(name))
+		return 0;
+	while (*name && *root && toupper((unsigned char)*name) == *root) {
+		name++;
+		root++;
+	}
+	return *name || *root;
+}
+
 int node_diagnostic(const struct node *node, size_t offset, const char *reason)
 {
 	size_t line = 1, column = 1, i;
@@ -134,6 +146,9 @@ static int source_valid(struct node *node)
 		unsigned char byte = (unsigned char)node->source.data[i];
 		if (!byte)
 			return node_diagnostic(node, i, "embedded NUL byte");
+		if (byte == '\r' && (i + 1 == node->source.length ||
+				    node->source.data[i + 1] != '\n'))
+			return node_diagnostic(node, i, "bare CR newline is unsupported");
 		if (i + 2 < node->source.length && byte == '?' &&
 		    node->source.data[i + 1] == '?' &&
 		    strchr("=/'()!<>-", node->source.data[i + 2]))
@@ -316,13 +331,35 @@ int node_parse(struct node *node)
 		return 0;
 	memcpy(node->name, basename, length - 2);
 	node->name[length - 2] = 0;
-	if (!identifier_valid(node->name) || !strcmp(node->name, "OIOIC") || !strcmp(node->name, "oioic"))
+	if (!node_name_valid(node->name))
 		return node_diagnostic(node, 0, "invalid or reserved node name");
 	if (!file_read(node->path, &node->source))
 		return node_diagnostic(node, 0, "cannot read regular source file");
 	if (!mask_source(node, &mask, 1))
 		goto done;
 	memset(mask.data + node->begin, ' ', node->end - node->begin);
+	/* Constructors are file-scope definitions. Never accept boundaries inside
+	 * a business function or aggregate, even if the tags themselves are valid. */
+	size_t depth = 0;
+	for (size_t i = 0; i < mask.length; i++) {
+		if ((i == node->begin || i == node->end) && depth) {
+			node_diagnostic(node, i, "constructor region must be at file scope");
+			goto done;
+		}
+		if (mask.data[i] == '{')
+			depth++;
+		if (mask.data[i] == '}') {
+			if (!depth) {
+				node_diagnostic(node, i, "unbalanced C braces");
+				goto done;
+			}
+			depth--;
+		}
+	}
+	if (depth) {
+		node_diagnostic(node, mask.length, "unbalanced C braces");
+		goto done;
+	}
 	for (p = mask.data; (p = strchr(p, '#')); p++) {
 		const char *directive = skip_space(p + 1);
 		if (!strncmp(directive, "if", 2) || !strncmp(directive, "else", 4) ||
@@ -346,8 +383,23 @@ int node_parse(struct node *node)
 		goto done;
 	int bindings = 0;
 	for (p = mask.data; (p = strstr(p, binding.data)); p += binding.length) {
+		const char *line = p;
+		while (line > mask.data && line[-1] != '\n')
+			line--;
+		if (memchr(line, '#', (size_t)(p - line))) {
+			node_diagnostic(node, (size_t)(p - mask.data), "macro binding declarations are unsupported");
+			free(binding.data);
+			goto done;
+		}
 		const char *q = skip_space(p + binding.length);
 		if (*q != '(' || (p > mask.data && (isalnum((unsigned char)p[-1]) || p[-1] == '_')))
+			continue;
+		const char *type = p;
+		while (type > mask.data && isspace((unsigned char)type[-1]))
+			type--;
+		if (type - mask.data < 4 || strncmp(type - 4, "void", 4) ||
+		    (type - mask.data > 4 &&
+		     (isalnum((unsigned char)type[-5]) || type[-5] == '_')))
 			continue;
 		q = strchr(q, ')');
 		if (q && *skip_space(q + 1) == '{')

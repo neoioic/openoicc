@@ -1,11 +1,2 @@
-* text=auto
-*.c text eol=lf
-*.h text eol=lf
-*.lua text eol=lf
-*.md text eol=lf
-*.json text eol=lf
-.gitignore text eol=lf
-.gitattributes text eol=lf
-.editorconfig text eol=lf
-.clang-format text eol=lf
-LICENSE text eol=lf
+# All text files use LF in both the repository and working tree.
+* text=auto eol=lf

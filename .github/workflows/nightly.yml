@@ -26,7 +26,7 @@ jobs:
             platform: mingw
             shell: 'msys2 {0}'
             suffix: .exe
-            archive: oicc-x86_64_windows.zip
+            archive: oicc-x86_64-windows.zip
           - runner: ubuntu-24.04
             platform: linux
             shell: bash
@@ -164,7 +164,7 @@ jobs:
             const fs = require('fs');
             const repo = context.repo;
             const tag = 'nightly';
-            const files = ['oicc-x86_64_windows.zip', 'oicc-x86_64-linux.zip'];
+            const files = ['oicc-x86_64-windows.zip', 'oicc-x86_64-linux.zip'];
             // Check both packages before changing the tag or release.
             for (const name of files) fs.accessSync(`packages/${name}`);
             const { data: head } = await github.rest.git.getRef({

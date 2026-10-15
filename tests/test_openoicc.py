@@ -1,7 +1,7 @@
 """Black-box regressions; all generated data stays in build/tests/.
 
 Run: python tests/test_openoicc.py --openoicc build/mingw/x86_64/debug/openoicc.exe
-Requires a C11 gcc on PATH. No original oicc executable is invoked.
+Requires a C11 compiler on PATH (default gcc). No original oicc executable is invoked.
 """
 import argparse
 import pathlib
@@ -18,6 +18,7 @@ import stat
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser()
 parser.add_argument("--openoicc", required=True)
+parser.add_argument("--cc", default="gcc", help="C11 compiler executable (default: gcc)")
 parser.add_argument("--release", action="store_true")
 args, rest = parser.parse_known_args()
 EXE = (ROOT / args.openoicc).resolve()
@@ -474,7 +475,7 @@ class OpenoiccTest(unittest.TestCase):
         for model in [0, -1, 65536, 4294967295]:
             with self.subTest(model=model):
                 (self.work / "host.h").write_bytes(f'#define MSN_BOAT {model}\n'.encode())
-                result = run(["gcc", "-std=c11", "-I", ROOT / "include",
+                result = run([args.cc, "-std=c11", "-I", ROOT / "include",
                               "-I", ROOT / "third_party/oioic/include", "-c", path,
                               "-o", self.work / "invalid.o"])
                 self.assertNotEqual(result.returncode, 0)
@@ -600,7 +601,7 @@ class OpenoiccTest(unittest.TestCase):
         self.assertIn(b"crt_b", b.read_bytes())
 
     def compile(self, output, files, extra=()):
-        result = run(["gcc", "-std=c11", "-O2" if args.release else "-O0",
+        result = run([args.cc, "-std=c11", "-O2" if args.release else "-O0",
                       *( ["-DNDEBUG"] if args.release else ["-g"] ),
                       "-I", ROOT / "third_party/oioic/include", "-I", ROOT / "include",
                       *extra, *files, "-o", output])

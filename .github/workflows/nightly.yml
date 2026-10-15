@@ -1,0 +1,211 @@
+name: Build, test and update Nightly
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.target.platform }} / ${{ matrix.cc }} / ${{ matrix.mode }}
+    runs-on: ${{ matrix.target.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - runner: windows-2022
+            platform: mingw
+            shell: 'msys2 {0}'
+            suffix: .exe
+            archive: oicc-x86_64_windows.zip
+          - runner: ubuntu-24.04
+            platform: linux
+            shell: bash
+            suffix: ''
+            archive: oicc-x86_64-linux.zip
+        cc: [gcc, clang]
+        mode: [debug, release]
+    defaults:
+      run:
+        shell: ${{ matrix.target.shell }}
+    env:
+      CC: ${{ matrix.cc }}
+      PLATFORM: ${{ matrix.target.platform }}
+      MODE: ${{ matrix.mode }}
+      BINARY: build/${{ matrix.target.platform }}/x86_64/${{ matrix.mode }}/openoicc${{ matrix.target.suffix }}
+      ARCHIVE: ${{ matrix.target.archive }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Windows toolchains
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-clang
+            mingw-w64-ucrt-x86_64-python
+            mingw-w64-ucrt-x86_64-xmake
+
+      - name: Install Linux toolchains
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gcc clang libc6-dev binutils
+
+      - uses: actions/setup-python@v5
+        if: runner.os == 'Linux'
+        with:
+          python-version: '3.12'
+
+      - uses: xmake-io/github-action-setup-xmake@v1
+        if: runner.os == 'Linux'
+        with:
+          xmake-version: '2.9.6'
+
+      - name: Configure and build static executables
+        run: |
+          set -euo pipefail
+          "$CC" --version
+          xmake --version
+          if [[ "$PLATFORM" == mingw ]]; then
+            xmake f -y -c -p mingw -a x86_64 -m "$MODE" --mingw="$MINGW_PREFIX" --cc="$CC" --ld="$CC" --ldflags=-static
+          else
+            xmake f -y -c -p linux -a x86_64 -m "$MODE" --toolchain="$CC" --ldflags=-static
+          fi
+          xmake -y openoicc
+          xmake -y oioic_reference
+
+      - name: Verify architecture, static linkage and startup
+        run: |
+          set -euo pipefail
+          for executable in "$BINARY" "$(dirname "$BINARY")/oioic_reference${{ matrix.target.suffix }}"; do
+            objdump -f "$executable" | grep 'architecture: i386:x86-64'
+            if [[ "$PLATFORM" == linux ]]; then
+              readelf -l "$executable" > build/program-headers.txt
+              readelf -d "$executable" > build/dynamic-section.txt
+              if grep -E 'INTERP' build/program-headers.txt || grep -E 'NEEDED' build/dynamic-section.txt; then
+                echo 'Unexpected dynamic ELF dependency' >&2
+                exit 1
+              fi
+            else
+              objdump -p "$executable" > build/pe-headers.txt
+              grep -i 'DLL Name:' build/pe-headers.txt
+              if grep -Ei 'DLL Name:.*(libgcc|libstdc\+\+|libwinpthread|libc\+\+|libunwind|msys-2\.0)' build/pe-headers.txt; then
+                echo 'Unexpected compiler runtime DLL dependency' >&2
+                exit 1
+              fi
+            fi
+          done
+          "$BINARY" --version
+          xmake run oioic_reference
+
+      - name: Run full Debug regressions
+        if: matrix.mode == 'debug'
+        run: python tests/test_openoicc.py --openoicc "$BINARY" --cc "$CC"
+
+      - name: Package GCC Release
+        if: matrix.cc == 'gcc' && matrix.mode == 'release'
+        run: |
+          python - <<'PY'
+          import os
+          import pathlib
+          import zipfile
+
+          binary = pathlib.Path(os.environ['BINARY'])
+          output = pathlib.Path('build/packages')
+          output.mkdir(parents=True, exist_ok=True)
+          with zipfile.ZipFile(output / os.environ['ARCHIVE'], 'w', zipfile.ZIP_DEFLATED) as archive:
+              archive.write(binary, binary.name)
+              for name in ['LICENSE', 'THIRD_PARTY_NOTICES.md', 'third_party/oioic/LICENSE']:
+                  archive.write(name, name)
+              archive.writestr('BUILD_INFO.txt', 'OpenOICC Nightly\nCommit: ' + os.environ['GITHUB_SHA'] + '\n')
+          PY
+
+      - name: Upload GCC Release package
+        if: matrix.cc == 'gcc' && matrix.mode == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.target.platform }}
+          path: build/packages/${{ matrix.target.archive }}
+          if-no-files-found: error
+          retention-days: 7
+
+  nightly:
+    name: Update Nightly assets
+    needs: build
+    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: packages
+
+      - name: Create or update the persistent Nightly release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const repo = context.repo;
+            const tag = 'nightly';
+            const files = ['oicc-x86_64_windows.zip', 'oicc-x86_64-linux.zip'];
+            // Check both packages before changing the tag or release.
+            for (const name of files) fs.accessSync(`packages/${name}`);
+            const { data: head } = await github.rest.git.getRef({
+              ...repo, ref: `heads/${context.payload.repository.default_branch}`
+            });
+            if (head.object.sha !== context.sha) {
+              core.notice('A newer push exists; skip this outdated Nightly.');
+              return;
+            }
+            try {
+              await github.rest.git.getRef({ ...repo, ref: `tags/${tag}` });
+              await github.rest.git.updateRef({
+                ...repo, ref: `tags/${tag}`, sha: context.sha, force: true
+              });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.git.createRef({ ...repo, ref: `refs/tags/${tag}`, sha: context.sha });
+            }
+            const body = `Latest passing build from the default branch.\n\nCommit: ${context.sha}\nRun: ${context.serverUrl}/${repo.owner}/${repo.repo}/actions/runs/${context.runId}`;
+            let release;
+            try {
+              ({ data: release } = await github.rest.repos.getReleaseByTag({ ...repo, tag }));
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              ({ data: release } = await github.rest.repos.createRelease({
+                ...repo, tag_name: tag, name: 'Nightly', body,
+                prerelease: true, make_latest: 'false'
+              }));
+            }
+            const { data: assets } = await github.rest.repos.listReleaseAssets({
+              ...repo, release_id: release.id, per_page: 100
+            });
+            for (const name of files) {
+              const previous = assets.find(asset => asset.name === name);
+              if (previous) await github.rest.repos.deleteReleaseAsset({ ...repo, asset_id: previous.id });
+              await github.rest.repos.uploadReleaseAsset({
+                ...repo, release_id: release.id, name, data: fs.readFileSync(`packages/${name}`),
+                headers: { 'content-type': 'application/zip' }
+              });
+            }
+            await github.rest.repos.updateRelease({
+              ...repo, release_id: release.id, name: 'Nightly', body,
+              prerelease: true, make_latest: 'false'
+            });

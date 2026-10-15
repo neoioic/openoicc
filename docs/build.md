@@ -34,7 +34,7 @@ Clang 将配置中的 `gcc` 换为 `clang`；Release 将 `debug` 换为 `release
 
 所有目标输出到仓库的 `build/`，本地配置在 `.xmake/`，二者被 Git 忽略。完整重建工具使用 `xmake -P . -r openoicc`，清理使用 `xmake clean -P .`。另行验证参考程序时执行 `xmake -P . oioic_reference` 和 `xmake run -P . oioic_reference`。
 
-参考程序成功时输出 car、ship、amphicar 的性能参数，共 11 项。它仅验证摘选运行时与参考示例的正常路径。生成器回归另使用 Python 3 标准库驱动真实命令及 PATH 中的 GCC 编译生成代码：
+参考程序成功时输出 car、ship、amphicar 的性能参数，共 11 项。它仅验证摘选运行时与参考示例的正常路径。生成器回归另使用 Python 3 标准库驱动真实命令及 PATH 中的 C11 编译器（默认 GCC，可用 `--cc clang` 选择 Clang）编译生成代码：
 
 ```sh
 xmake -P . openoicc
@@ -47,6 +47,24 @@ python tests/test_openoicc.py --openoicc build/mingw/x86_64/release/openoicc.exe
 Linux 将可执行路径替换为 `build/linux/x86_64/debug/openoicc`（Release 同理）。测试只在仓库 `build/tests/` 内创建和清理自己的独占临时目录，不修改参考示例；测试源码、输入模板和固定随机种子纳入版本管理。`--release` 用 `-O2 -DNDEBUG` 编译测试生成代码，校验本身不依赖 assert。
 
 不同平台的构建命令代表支持目标，不自动代表已验证。当前验证记录见本文件末尾，不能以某一平台成功运行推断其他平台通过。
+
+## GitHub Actions 与 Nightly
+
+[nightly.yml](../.github/workflows/nightly.yml) 在分支推送、PR 和手动触发时运行 Windows 2022、Ubuntu 24.04 的 x86_64 × GCC/Clang × Debug/Release 八项构建。使用 xmake 构建工具、仓库内 OIOIC 静态库和参考程序，以 `--ldflags=-static` 静态链接；Linux 检查 ELF 无解释器和动态依赖，Windows 检查不依赖编译器运行时 DLL（Windows 系统 DLL 仍由系统提供）。各配置运行版本命令和参考程序，四项 Debug 配置用对应编译器执行完整 Python 回归，包括生成代码运行、失败清理和自举。
+
+Windows 使用 MSYS2 UCRT64 的 GCC、Clang、Python 和 xmake，Linux 安装系统 GCC/Clang 并使用 xmake 2.9.6。测试也可本地显式选择编译器：
+
+```sh
+python tests/test_openoicc.py --openoicc build/linux/x86_64/debug/openoicc --cc clang
+```
+
+只有默认分支的推送在全部八项任务成功后更新 Nightly；其他分支、PR 和手动运行只验证。工作流的构建任务仅有读取权限，发布任务使用 `GITHUB_TOKEN` 的 `contents: write` 权限，无需额外密钥。同一分支的新运行会取消旧运行，发布前也会核对默认分支当前提交，防止旧产物覆盖新产物。
+
+首次发布创建小写 `nightly` 标签和名为 `Nightly` 的预发行版；以后移动同一标签、覆盖两个同名附件并更新说明，保留原发行版，不按提交新增 Release。压缩包名称按发布约定保留为 `oicc-x86_64_windows.zip`、`oicc-x86_64-linux.zip`，其中可执行文件仍使用正式命令名 `openoicc.exe`、`openoicc`。两个包只包含 GCC Release 可执行文件、项目及运行时许可、第三方声明和提交信息；Clang 参与验证，不发布。Linux ZIP 保留可执行权限。
+
+GitHub 附件替换不是事务：上传中断可能留下部分更新的附件；重新运行该默认分支提交的工作流可重试。仓库若启用禁止移动 `nightly` 标签的规则或不可变发行版设置，需为此滚动预发行版配置允许更新的规则。平台验证结果以实际 Actions 日志为准，以下本地记录不代表该矩阵已在 GitHub 执行。
+
+本次 CI 配置本地验证：Windows x86_64 GCC 静态 Debug 构建及 36 项回归通过；静态 Release、参考程序构建与运行通过，PE 导入表仅包含 Windows 系统 DLL。工作流通过 actionlint，发布 JavaScript 语法及工作流中的 ZIP 打包代码、包内容检查通过。现有本机 Clang 缺少 `mm_malloc.h`，未完成 Clang 构建；Ubuntu、MSYS2 CI 环境及实际 GitHub 发布尚待 Actions 执行验证。
 
 ## 当前记录
 

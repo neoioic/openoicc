@@ -1,6 +1,8 @@
 # OpenOICC 0.1 命令与生成契约
 
-OpenOICC 是使用 C11 与 OIOIC 实现的控制台工具。应用宿主管理 OID；项目对象通过 `vo_open`、`vo_interact2`、`vo_close` 协调源码文档、标记解析、继承分析、构造生成和文件提交。文档与节点模型由项目独占，算法使用同一模型，不为每个纯计算步骤创建对象。
+OpenOICC 是使用 C11 与 NEOioic 实现的控制台工具。应用宿主管理 OID；项目对象通过 `vo_open`、`vo_interact2`、`vo_close` 协调源码文档、标记解析、继承分析、构造生成和文件提交。文档与节点模型由项目独占，算法使用同一模型，不为每个纯计算步骤创建对象。
+
+工具专为 NEOioic 生成代码。NEOioic 由 OIOIC 发展而来，未来可能有不兼容的 API 更新；本契约只对应仓库内固定的 NEOioic 快照，升级时需同步适配生成器与构造辅助实现，并重新执行行为验证。
 
 ## 命令
 
@@ -18,7 +20,7 @@ xmake run -P . openoicc generate path/to/car.c path/to/ship.c path/to/amphibian.
 xmake run -P . openoicc generate --write path/to/car.c path/to/ship.c path/to/amphibian.c
 ```
 
-`new` 创建 UTF-8、LF、无自有成员的九接口骨架，默认直接基节点为 `OIOIC`。目标目录须已存在，文件名须与节点名一致，不覆盖已有文件。继承列表作为一个逗号分隔的参数传入；创建时校验语法，基节点是否存在由项目校验负责。节点名采用 ASCII 字母开头、随后字母/数字/下划线的名称，根名 `OIOIC` 的所有大小写变体保留。
+`new` 创建 UTF-8、LF、无自有成员的九接口骨架，默认直接基节点为 `NEOioic`。目标目录须已存在，文件名须与节点名一致，不覆盖已有文件。继承列表作为一个逗号分隔的参数传入；创建时校验语法，基节点是否存在由项目校验负责。节点名采用 ASCII 字母开头、随后字母/数字/下划线的名称，根名 `NEOioic` 的所有大小写变体保留。
 
 `check` 解析并校验全部输入，计算构造输出，报告会改变的文件，不写入。`generate` 默认同样只报告计划，只有 `--write` 提交更新。所有非根基节点的 `.c` 必须显式列出，参数顺序不影响同一节点的输出。每个文件对应一个节点；节点名为文件名去掉 `.c`。同名节点和大写后冲突的 `MSN_*` 名称都报错。
 
@@ -37,7 +39,7 @@ xmake run -P . openoicc generate --write path/to/car.c path/to/ship.c path/to/am
 /* </oicc> */
 ```
 
-标记只在 C 注释中识别，字符串和字符字面量中的标记忽略。`<ibn>` 在同一条注释内闭合；两个 `<crt>` 边界必须各自位于独立的块注释中，且位于文件作用域。重复、错序、未闭合标记以及损坏的 C 注释/字面量、区外花括号不配对会失败。根节点无输入文件，直接基节点列表必须非空（无其他基节点时写 `OIOIC`）。
+标记只在 C 注释中识别，字符串和字符字面量中的标记忽略。`<ibn>` 在同一条注释内闭合；两个 `<crt>` 边界必须各自位于独立的块注释中，且位于文件作用域。重复、错序、未闭合标记以及损坏的 C 注释/字面量、区外花括号不配对会失败。根节点无输入文件，直接基节点列表必须非空（无其他基节点时写 `NEOioic`）。
 
 业务代码提供唯一的 `void tog_name(struct object *)` 定义。自有成员可定义为 `struct em_name { ... };`，放在本文件构造区外或同目录同名 `.h` 的文件作用域中。没有该结构定义时不分配自有成员；重复、局部定义及引用了未直接定义的自有成员类型会拒绝。工具不解析整个 include 树，也不展开宏、不解析 typedef 或属性修饰的成员结构声明；成员定义须直接可见，源文件内的条件预处理拒绝，成员头文件只允许一个常规外层 `#ifndef` 守卫。禁止 C 行拼接、三字符替换和双字符预处理指令，输入必须是合法 UTF-8 且不含 NUL，允许 UTF-8 BOM。成员布局的最终有效性由 C 编译及构造器验证。
 
@@ -45,13 +47,13 @@ xmake run -P . openoicc generate --write path/to/car.c path/to/ship.c path/to/am
 
 ## 输出与运行时
 
-生成的 `crt_name` 接口与仓库当前构造器一致。生成代码包含 `openoicc/construct.h`；编译需把仓库 `include/` 及 OIOIC `include/` 加入头文件搜索路径，链接当前 OIOIC 及所有节点业务实现。`construct.h` 是不依赖 openoicc 可执行程序的 C11 头文件实现，可随生成源码一同分发并保留 MIT 许可。
+生成的 `crt_name` 接口与仓库当前构造器一致。生成代码包含 `openoicc/construct.h`；编译需把仓库 `include/` 及 NEOioic `include/` 加入头文件搜索路径，链接当前 NEOioic 及所有节点业务实现。`construct.h` 是不依赖 openoicc 可执行程序的 C11 头文件实现，可随生成源码一同分发并保留 MIT 许可。
 
 节点按有序深度优先前序遍历去重，最终派生节点位于首项；直接基节点保持 `<ibn>` 顺序，祖先集合使用同一遍历顺序。共享祖先只分配一份。每个节点的席位倍数为从构造目标到该节点的最长继承路径长度加一。该规则为逐层向基节点的嵌套委托保留外部调用者与各层委托者记录；普通 OBS/SBO 沿用原上下文。一个委托 VO 返回时清除对应祖先上下文，因此先后访问不同分支不累加同时在用席位。此规则覆盖单线程、沿继承方向委托的模型；任意跨分支委托、循环重入及并发调用不在这一容量保证内。
 
-菱形 amphicar → car / ship → vehicle → OIOIC 得到节点顺序 amphicar、car、vehicle、OIOIC、ship，倍数 1、2、3、4、2。回归通过真实 OBS 与嵌套 VO 委托验证这些容量被使用及释放，而非仅对比生成文本。
+菱形 amphicar → car / ship → vehicle → NEOioic 得到节点顺序 amphicar、car、vehicle、NEOioic、ship，倍数 1、2、3、4、2。回归通过真实 OBS 与嵌套 VO 委托验证这些容量被使用及释放，而非仅对比生成文本。
 
-布局逐块检查尺寸加乘溢出和对齐，自有成员使用 `OIOIC_ALIGNED_SIZE`；超过 `struct object` 对齐的成员明确返回 `RN_INVALIDARG`。`caller_capacity` 必须为正，乘席位倍数后不超过 `USHRT_MAX`。模型编号有编译期范围检查，重复编号在构造时拒绝。输入/输出队列独立分配，容量零禁用，空队列头尾为 NULL。
+布局逐块检查尺寸加乘溢出和对齐，自有成员使用 `NEOIOIC_ALIGNED_SIZE`；超过 `struct object` 对齐的成员明确返回 `RN_INVALIDARG`。`caller_capacity` 必须为正，乘席位倍数后不超过 `USHRT_MAX`。模型编号有编译期范围检查，重复编号在构造时拒绝。输入/输出队列独立分配，容量零禁用，空队列头尾为 NULL。
 
 构造失败不发布动态对象、不消耗 OID，释放本次分配的队列和本体。参数和布局校验失败不会写外部存储；开始初始化后的队列分配失败会清零本次构造区。成功才推进 OID，低 16 位不允许跨入宿主编号。openoicc 宿主可回收并重用节点 OID；生成函数的 OID 来源由目标应用宿主管理。
 

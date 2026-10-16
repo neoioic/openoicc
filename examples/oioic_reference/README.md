@@ -1,14 +1,14 @@
-# OIOIC 继承参考示例
+# NEOioic 继承参考示例
 
-本目录摘选 OIOIC 1.0.18 多继承示例的 C 源码及头文件，保留原始目录关系和实现。通过根构建链接仓库内 OIOIC 核心，不使用外部仓库。
+本目录摘选 OIOIC 1.0.18 多继承示例的 C 源码及头文件，保留原始目录关系和业务实现，仅迁移根节点名称、API 标识及头文件以链接仓库内 NEOioic 核心，不使用外部仓库。目录和构建目标保留 `oioic_reference`，表示示例的历史来源。
 
 ```text
 amphicar
-├── car ── vehicle ── OIOIC
-└── ship ─ vehicle ── OIOIC
+├── car ── vehicle ── NEOioic
+└── ship ─ vehicle ── NEOioic
 ```
 
-vehicle 与 OIOIC 是共享节点，各只构造一次。car 和 ship 的构造器同时提供单继承参考。主程序输出重量、载重及速度，并演示成功路径下的创建、打开、交互、关闭与销毁。
+vehicle 与 NEOioic 是共享节点，各只构造一次。car 和 ship 的构造器同时提供单继承参考。主程序输出重量、载重及速度，并演示成功路径下的创建、打开、交互、关闭与销毁。
 
 从仓库根目录运行 `xmake -P . oioic_reference` 和 `xmake run -P . oioic_reference`，先按 [构建说明](../../docs/build.md) 配置工具链。
 
@@ -16,4 +16,4 @@ vehicle 与 OIOIC 是共享节点，各只构造一次。car 和 ship 的构造�
 
 示例的业务失败处理有所简化，运行成功只证明这一成功路径，不证明分配失败、部分关闭等路径已覆盖。实现 OpenOICC 时遵循 [生成契约](../../docs/openoicc.md)，不要直接复制简化的错误处理。
 
-来源见 [SOURCE.json](../../third_party/oioic/SOURCE.json)，许可见 [LICENSE](LICENSE)。
+来源见 [SOURCE.json](../../third_party/neoioic/SOURCE.json)，许可见 [LICENSE](LICENSE)。

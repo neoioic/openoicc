@@ -29,8 +29,8 @@ def run(command, cwd=ROOT):
                           text=True, encoding="utf-8", errors="replace", timeout=60)
 
 
-def source(name, bases="OIOIC", members=""):
-    return (f'#include "oioic.h"\n{members}\n'
+def source(name, bases="NEOioic", members=""):
+    return (f'#include "neoioic.h"\n{members}\n'
             f'/* <oicc> */\n/* <ibn> {bases} </ibn> */\n'
             f'/* <crt> */\nold constructor\n/* </crt> */\n/* </oicc> */\n'
             f'void tog_{name}(struct object *object) {{ (void)object; }}\n')
@@ -52,7 +52,7 @@ class OpenoiccTest(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
         return result
 
-    def write(self, name="a", bases="OIOIC", content=None):
+    def write(self, name="a", bases="NEOioic", content=None):
         path = self.work / (name + ".c")
         path.write_text(source(name, bases) if content is None else content,
                         encoding="utf-8", newline="")
@@ -83,11 +83,11 @@ class OpenoiccTest(unittest.TestCase):
         self.invoke("check", path)
         self.invoke("generate", "--write", path)
         self.assertIn(b"crt_boat", path.read_bytes())
-        for name, filename, bases in [("9x", "9x.c", "OIOIC"),
-                                      ("a", "wrong.c", "OIOIC"),
-                                      ("oioic", "oioic.c", "OIOIC"),
-                                      ("a", "a.c", "OIOIC,"),
-                                      ("a", "a.c", "OIOIC */ BAD")]:
+        for name, filename, bases in [("9x", "9x.c", "NEOioic"),
+                                      ("a", "wrong.c", "NEOioic"),
+                                      ("neoioic", "neoioic.c", "NEOioic"),
+                                      ("a", "a.c", "NEOioic,"),
+                                      ("a", "a.c", "NEOioic */ BAD")]:
             with self.subTest(name=name, bases=bases):
                 dest = self.work / filename
                 self.invoke("new", name, dest, bases, success=False)
@@ -121,18 +121,18 @@ class OpenoiccTest(unittest.TestCase):
     def test_broken_markers(self):
         variants = [source("a").replace("/* </crt> */", ""),
                     source("a") + "/* <oicc> */\n",
-                    source("a").replace("<ibn> OIOIC </ibn>", "<ibn> OIOIC"),
-                    source("a").replace("<ibn> OIOIC </ibn>", "<crt>"),
+                    source("a").replace("<ibn> NEOioic </ibn>", "<ibn> NEOioic"),
+                    source("a").replace("<ibn> NEOioic </ibn>", "<crt>"),
                     source("a").replace("/* <crt> */", "/* <crt> <crt> */")]
         for content in variants:
             with self.subTest(content=content):
-                reason = "standalone" if "<crt> <crt>" in content else "ibn" if "<ibn> OIOIC */" in content else "marker"
+                reason = "standalone" if "<crt> <crt>" in content else "ibn" if "<ibn> NEOioic */" in content else "marker"
                 self.invalid(content, reason)
 
     def test_base_errors(self):
         for bases, reason in [("missing", "unknown"), ("a", "cycle"),
-                              ("OIOIC,OIOIC", "duplicate direct"),
-                              ("OIOIC,", "trailing"), ("OIOIC OIOIC", "comma"),
+                              ("NEOioic,NEOioic", "duplicate direct"),
+                              ("NEOioic,", "trailing"), ("NEOioic NEOioic", "comma"),
                               ("", "required"), ("9foo", "invalid")]:
             with self.subTest(bases=bases):
                 self.invalid(source("a", bases), reason)
@@ -191,20 +191,20 @@ class OpenoiccTest(unittest.TestCase):
         base = self.write("base")
         self.invoke("generate", "--write", leaf, right, base, left)
         text = re.sub(r"\s+", " ", leaf.read_text(encoding="utf-8"))
-        self.assertIn("OIOIC_ALIGNED_SIZE(struct em_leaf)", text)
+        self.assertIn("NEOIOIC_ALIGNED_SIZE(struct em_leaf)", text)
         self.assertIn("direct_0[] = { 1, 4 }", text)
-        self.assertIn("MSN_OIOIC, tog_oioic, OIOIC_ALIGNED_SIZE(struct em_oioic), _Alignof(struct em_oioic), 4", text)
+        self.assertIn("MSN_NEOIOIC, tog_neoioic, NEOIOIC_ALIGNED_SIZE(struct em_neoioic), _Alignof(struct em_neoioic), 4", text)
         before = leaf.read_bytes()
         self.invoke("generate", "--write", base, leaf, left, right)
         self.assertEqual(before, leaf.read_bytes())
 
     def test_deep_graph(self):
-        paths = [self.write(f"n{i}", f"n{i+1}" if i < 119 else "OIOIC") for i in range(120)]
+        paths = [self.write(f"n{i}", f"n{i+1}" if i < 119 else "NEOioic") for i in range(120)]
         self.invoke("check", *paths)
 
     def test_random_dags_and_base_order(self):
         rng = random.Random(7331)
-        graph = {f"g{i}": rng.sample([f"g{j}" for j in range(i + 1, 14)] + ["OIOIC"],
+        graph = {f"g{i}": rng.sample([f"g{j}" for j in range(i + 1, 14)] + ["NEOioic"],
                                     min(3, 14 - i)) for i in range(14)}
         paths = [self.write(name, ",".join(bases)) for name, bases in graph.items()]
         self.invoke("generate", "--write", *reversed(paths))
@@ -219,7 +219,7 @@ class OpenoiccTest(unittest.TestCase):
             visit(name)
             code = re.sub(r"\s+", " ", path.read_text(encoding="utf-8"))
             bindings = re.findall(r"extern void tog_(\w+)", code)
-            self.assertEqual(bindings, [node if node != "OIOIC" else "oioic" for node in expected])
+            self.assertEqual(bindings, [node if node != "NEOioic" else "neoioic" for node in expected])
             seats = {name: 1}
             def depth(node, value):
                 seats[node] = max(seats.get(node, 0), value)
@@ -227,7 +227,7 @@ class OpenoiccTest(unittest.TestCase):
                     depth(base, value + 1)
             depth(name, 1)
             for node in expected:
-                spelling = "oioic" if node == "OIOIC" else node
+                spelling = "neoioic" if node == "NEOioic" else node
                 match = re.search(r"\{ MSN_" + node.upper() + r", tog_" + spelling +
                                   r", .*?, (\d+), (?:direct_\d+|NULL),", code, re.S)
                 self.assertIsNotNone(match, code)
@@ -240,7 +240,7 @@ class OpenoiccTest(unittest.TestCase):
 
     def test_all_tool_allocation_failures(self):
         instrumented = self.work / "instrumented.exe"
-        runtime = list((ROOT / "third_party/oioic/src").glob("*.c"))
+        runtime = list((ROOT / "third_party/neoioic/src").glob("*.c"))
         self.compile(instrumented, [*list((ROOT / "src").rglob("*.c")), *runtime,
                                    ROOT / "tests/tool_alloc.c"],
                      ["-include", ROOT / "tests/tool_alloc.h", "-I", ROOT / "tests"])
@@ -282,7 +282,7 @@ class OpenoiccTest(unittest.TestCase):
         self.invoke("generate", "--write", project)
         self.assertEqual(project.read_bytes(), before)
         tool = self.work / "bootstrap.exe"
-        self.compile(tool, [*copied.rglob("*.c"), *list((ROOT / "third_party/oioic/src").glob("*.c"))])
+        self.compile(tool, [*copied.rglob("*.c"), *list((ROOT / "third_party/neoioic/src").glob("*.c"))])
         result = run([tool, "generate", "--write", project])
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(project.read_bytes(), before)
@@ -290,7 +290,7 @@ class OpenoiccTest(unittest.TestCase):
     def test_host_lifecycle_and_interfaces(self):
         executable = self.work / "host.exe"
         files = [path for path in (ROOT / "src").rglob("*.c") if path.name != "main.c"]
-        self.compile(executable, [*files, *list((ROOT / "third_party/oioic/src").glob("*.c")),
+        self.compile(executable, [*files, *list((ROOT / "third_party/neoioic/src").glob("*.c")),
                                   ROOT / "tests/host.c"], ["-I", ROOT / "src"])
         result = run([executable])
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -308,7 +308,7 @@ class OpenoiccTest(unittest.TestCase):
     def test_constructor_layout_boundaries(self):
         executable = self.work / "construct.exe"
         self.compile(executable, [ROOT / "tests/construct.c", ROOT / "tests/alloc.c",
-                                  *list((ROOT / "third_party/oioic/src").glob("*.c"))],
+                                  *list((ROOT / "third_party/neoioic/src").glob("*.c"))],
                      ["-I", ROOT / "tests"])
         result = run([executable])
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -321,7 +321,7 @@ class OpenoiccTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_reserved_root_case_variants(self):
-        for name in ["OIOIC", "oioic", "OiOiC", "Oioic", "oiOIC"]:
+        for name in ["NEOioic", "neoioic", "NeOiOiC", "Neoioic", "neoIOIC"]:
             path = self.work / (name + '.c')
             self.invoke("new", name, path, success=False)
             self.assertFalse(path.exists())
@@ -454,17 +454,17 @@ class OpenoiccTest(unittest.TestCase):
     def test_new_scaffold_compiles_and_runs(self):
         path = self.work / "boat.c"
         self.invoke("new", "boat", path)
-        (self.work / "host.h").write_bytes(b'#include "oioic.h"\n#define MSN_BOAT 2\n')
+        (self.work / "host.h").write_bytes(b'#include "neoioic.h"\n#define MSN_BOAT 2\n')
         self.invoke("generate", "--write", path)
         driver = self.work / "driver.c"
-        driver.write_bytes(b'#include "oioic.h"\n'
+        driver.write_bytes(b'#include "neoioic.h"\n'
                           b'extern int crt_boat(uint64_t*,unsigned int,unsigned int,int,struct object**,unsigned char*);\n'
                           b'int main(void) { struct object *o; uint64_t id=10; struct vr v={1,1};\n'
                           b'if(RN(crt_boat(&id,0,0,1,&o,0)))return 1;\n'
                           b'if(RN(vo_open(o,&v))||RN(vo_interact0(o,ASK_SHARED,&v))||RN(vo_close(o,&v)))return 2;\n'
                           b'free(o);return 0;}\n')
         executable = self.work / "boat.exe"
-        self.compile(executable, [path, driver, *list((ROOT / "third_party/oioic/src").glob("*.c"))])
+        self.compile(executable, [path, driver, *list((ROOT / "third_party/neoioic/src").glob("*.c"))])
         result = run([executable])
         self.assertEqual(result.returncode, 0, result.stderr)
 
@@ -476,7 +476,7 @@ class OpenoiccTest(unittest.TestCase):
             with self.subTest(model=model):
                 (self.work / "host.h").write_bytes(f'#define MSN_BOAT {model}\n'.encode())
                 result = run([args.cc, "-std=c11", "-I", ROOT / "include",
-                              "-I", ROOT / "third_party/oioic/include", "-c", path,
+                              "-I", ROOT / "third_party/neoioic/include", "-c", path,
                               "-o", self.work / "invalid.o"])
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("model id out of range", result.stderr)
@@ -488,12 +488,12 @@ class OpenoiccTest(unittest.TestCase):
         (self.work / "boat.h").write_bytes(b'struct em_boat { _Alignas(64) int value; };\n')
         self.invoke("generate", "--write", path)
         driver = self.work / "driver.c"
-        driver.write_bytes(b'#include "oioic.h"\n'
+        driver.write_bytes(b'#include "neoioic.h"\n'
                           b'extern int crt_boat(uint64_t*,unsigned int,unsigned int,int,struct object**,unsigned char*);\n'
                           b'int main(void){uint64_t id=10;struct object *o=(void*)1;\n'
                           b'int r=crt_boat(&id,0,0,1,&o,0);return !(r==RN_INVALIDARG && !o && id==10);}\n')
         executable = self.work / "aligned.exe"
-        self.compile(executable, [path, driver, *list((ROOT / "third_party/oioic/src").glob("*.c"))])
+        self.compile(executable, [path, driver, *list((ROOT / "third_party/neoioic/src").glob("*.c"))])
         result = run([executable])
         self.assertEqual(result.returncode, 0, result.stderr)
 
@@ -513,7 +513,7 @@ class OpenoiccTest(unittest.TestCase):
         leaf = self.write("leaf", ','.join(f"branch{i}" for i in range(96)))
         self.invoke("generate", "--write", leaf, *branches)
         code = leaf.read_text(encoding="utf-8")
-        self.assertEqual(code.count("extern void tog_oioic"), 1)
+        self.assertEqual(code.count("extern void tog_neoioic"), 1)
         self.assertEqual(len(re.findall(r"extern void tog_", code)), 98)
         before = leaf.read_bytes()
         self.invoke("generate", "--write", *reversed(branches), leaf)
@@ -541,11 +541,11 @@ class OpenoiccTest(unittest.TestCase):
             for i, bases in graph.items():
                 name = f"r{i}"
                 p = self.work / f"{name}.c"
-                self.invoke("new", name, p, ','.join('OIOIC' if j == count else f"r{j}" for j in bases))
+                self.invoke("new", name, p, ','.join('NEOioic' if j == count else f"r{j}" for j in bases))
                 paths.append(p)
             (self.work / "host.h").write_bytes((''.join(f'#define MSN_R{i} {i+2}\n' for i in range(count))).encode())
             self.invoke("generate", "--write", *paths)
-            driver = ['#include "oioic.h"', '#include <stdio.h>',
+            driver = ['#include "neoioic.h"', '#include <stdio.h>',
                       '#define C(x) do { if(!(x)){fprintf(stderr,"line %d\\n",__LINE__);return 1;} }while(0)']
             driver += [f'extern int crt_r{i}(uint64_t*,unsigned int,unsigned int,int,struct object**,unsigned char*);' for i in range(count)]
             driver += ['int main(void){struct object *o; uint64_t id=1; struct vr v={1,1};']
@@ -574,7 +574,7 @@ class OpenoiccTest(unittest.TestCase):
             driver_path = self.work / "oracle.c"
             driver_path.write_bytes(('\n'.join(driver)+'\n').encode())
             executable = self.work / "oracle.exe"
-            self.compile(executable, [*paths, driver_path, *list((ROOT / "third_party/oioic/src").glob("*.c"))])
+            self.compile(executable, [*paths, driver_path, *list((ROOT / "third_party/neoioic/src").glob("*.c"))])
             result = run([executable])
             self.assertEqual(result.returncode, 0, (seed, result.stderr))
             for path in paths:
@@ -603,7 +603,7 @@ class OpenoiccTest(unittest.TestCase):
     def compile(self, output, files, extra=()):
         result = run([args.cc, "-std=c11", "-O2" if args.release else "-O0",
                       *( ["-DNDEBUG"] if args.release else ["-g"] ),
-                      "-I", ROOT / "third_party/oioic/include", "-I", ROOT / "include",
+                      "-I", ROOT / "third_party/neoioic/include", "-I", ROOT / "include",
                       *extra, *files, "-o", output])
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
@@ -611,7 +611,7 @@ class OpenoiccTest(unittest.TestCase):
         reference = self.work / "reference"
         shutil.copytree(ROOT / "examples/oioic_reference", reference)
         nodes = [reference / f"so/go/{name}/{name}.c" for name in ("vehicle", "car", "ship", "amphicar")]
-        runtime = list((ROOT / "third_party/oioic/src").glob("*.c"))
+        runtime = list((ROOT / "third_party/neoioic/src").glob("*.c"))
         original = self.work / "original.exe"
         application = [reference / "ho.c", reference / "Factory.c", reference / "so/ao/Main/Main.c"]
         self.compile(original, [*nodes, *runtime, *application])

@@ -32,7 +32,7 @@ int graph_validate(struct em_project *project)
 			return 0;
 		for (j = 0; j < node->direct_count; j++) {
 			const char *name = node->base_names[j];
-			if (!strcmp(name, "OIOIC")) {
+			if (!strcmp(name, "NEOioic")) {
 				node->direct[j] = n;
 			} else {
 				for (k = 0; k < n; k++)

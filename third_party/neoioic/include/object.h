@@ -1,11 +1,11 @@
 /*
- * o.h 文件。
+ * object.h 文件。
  * 创 建 者：赵平智   <bruce.zhao.zpz@gmail.com>
  * 版权(C)2005-2011 赵平智。保留所有权利。
  */
 
-#ifndef OIOIC_O_H
-#define OIOIC_O_H
+#ifndef NEOIOIC_OBJECT_H
+#define NEOIOIC_OBJECT_H
 
 /* #define  NDEBUG */
 #include <assert.h>
@@ -15,7 +15,7 @@
 
 /*
  * 内联VO函数的开关。0 - 不内联，1 - 内联，其它 - 保留不用。
- * 备注：定义为1时，能否真正内联VO函数还取决于下面的“OIOIC_INLINE”宏定义是否有效。
+ * 备注：定义为1时，能否真正内联VO函数还取决于下面的“NEOIOIC_INLINE”宏定义是否有效。
  */
 #define INLINE_VOFUNCTION 0
 
@@ -24,7 +24,7 @@
  * 备注：一定要定义为有效的内联指示符，否则即使编译通过，内联也是无效的，编译
  *       器会自动把用其修饰的函数转为非内联编译。
  */
-#define OIOIC_INLINE inline
+#define NEOIOIC_INLINE inline
 
 /*
  * OS、HO、SO的mask。
@@ -63,8 +63,8 @@
  *       #define   MSN_XXX5    (MSN_ + 4)  /-* xxx5的model_id。.. *-/
  *       #define   MSN_XXXn    (MSN_ + n-1)  /-* xxxn的model_id。... *-/
  */
-#define MSN_OIOIC 1	     /* OIOIC的model_id。 */
-#define MSN_ (MSN_OIOIC + 1) /* 其它model_id的起点。 */
+#define MSN_NEOIOIC 1	     /* NEOioic的model_id。 */
+#define MSN_ (MSN_NEOIOIC + 1) /* 其它model_id的起点。 */
 
 /*
  * 通用模式定义。
@@ -172,9 +172,9 @@
 #define RN_UNSHARED (R_N - 3) /* open，对象是非共享的。 */
 #define RN_FULL (R_N - 2) /* open，对象引用已满，不能再打开。 */
 #define RN_INVALIDARG (R_N - 1) /* 无效参数 */
-#define R_N OIOIC_RON		/* N结果（否定性结果）的起点。 */
+#define R_N NEOIOIC_RON		/* N结果（否定性结果）的起点。 */
 
-#define OIOIC_RON (RON_ - 1000) /* O结果域的N界。 */
+#define NEOIOIC_RON (RON_ - 1000) /* O结果域的N界。 */
 
 #define RON_ (R_O - 3)	    /* <其它负O结果的起点> */
 #define RO_NOPEN (R_O - 2)  /* close，对象还没有被打开。 */
@@ -185,9 +185,9 @@
 #define RO__SBOOIX (R_O + 3) /* SBO顺序接力访问模式专用执行结果。 */
 #define ROP_ (R_O + 4)	     /* <其它正O结果的起点> */
 
-#define OIOIC_ROP (ROP_ + 1000) /* O结果域的P界。 */
+#define NEOIOIC_ROP (ROP_ + 1000) /* O结果域的P界。 */
 
-#define R_P OIOIC_ROP	    /* P结果（肯定性结果）的起点。 */
+#define R_P NEOIOIC_ROP	    /* P结果（肯定性结果）的起点。 */
 #define RP_RCZERO (R_P + 1) /* close，对象引用计数变为0。 */
 #define RP_RCONE (R_P + 2)  /* open，对象引用计数为1。 */
 #define RP_ (R_P + 3)	    /* <其它P结果的起点> */
@@ -198,9 +198,9 @@
  *       RO --- O  Result；
  *       RP --- Positive Result。
  */
-#define RN(Result) ((int)(Result) <= OIOIC_RON)
-#define RO(Result) (((int)(Result) > OIOIC_RON) && ((int)(Result) < OIOIC_ROP))
-#define RP(Result) ((int)(Result) >= OIOIC_ROP)
+#define RN(Result) ((int)(Result) <= NEOIOIC_RON)
+#define RO(Result) (((int)(Result) > NEOIOIC_RON) && ((int)(Result) < NEOIOIC_ROP))
+#define RP(Result) ((int)(Result) >= NEOIOIC_ROP)
 
 /* 定义布尔值和空指针值。 */
 #undef TRUE
@@ -211,7 +211,7 @@
 #define FALSE 0 /* 布尔类型数据值：假 */
 #define NULL 0	/* 指针类型数据值：空 */
 
-/* OIOIC */
+/* NEOioic */
 
 /*
  * 队列结构体
@@ -238,8 +238,8 @@ struct vr {
 /* 节点通过 members 指向自己的 struct em_xxx 状态。 */
 
 /*
- * OIOIC对象模型结构体。
- * 备注：“OIOIC”是5个通用接口（open，input，output，Interact，close）的第一个字符的合写。
+ * NEOioic对象模型结构体。
+ * 备注：原名“OIOIC”是5个通用接口（open，input，output，Interact，close）的第一个字符的合写。
  */
 struct object {
 	/* ref_count，对象引用计数（Reference Count）。 */
@@ -373,7 +373,7 @@ struct object {
 };
 
 /* Keep generated extended-member blocks aligned for subsequent nodes. */
-#define OIOIC_ALIGNED_SIZE(Type)                        \
+#define NEOIOIC_ALIGNED_SIZE(Type)                        \
 	((sizeof(Type) + _Alignof(struct object) - 1) / \
 	 _Alignof(struct object) * _Alignof(struct object))
 
@@ -468,7 +468,7 @@ struct object {
  * 参数：object --- [IN] 指向对象；
  *       caller_context --- [IN] 来访者。
  */
-static OIOIC_INLINE int vo_open(struct object *object,
+static NEOIOIC_INLINE int vo_open(struct object *object,
 				const struct vr *caller_context)
 {
 	extern int register_caller(struct object * node,
@@ -499,7 +499,7 @@ static OIOIC_INLINE int vo_open(struct object *object,
  *       quantity --- [IN] 输入的Byte数量；
  *       caller_context --- [IN] 来访者。
  */
-static OIOIC_INLINE int vo_input(struct object *object,
+static NEOIOIC_INLINE int vo_input(struct object *object,
 				 unsigned char *input_stream,
 				 unsigned int quantity,
 				 const struct vr *caller_context)
@@ -536,7 +536,7 @@ static OIOIC_INLINE int vo_input(struct object *object,
  *       output_quantity --- [OUT] 指向实际输出的Byte数量；
  *       caller_context --- [IN] 来访者。
  */
-static OIOIC_INLINE int vo_output(struct object *object,
+static NEOIOIC_INLINE int vo_output(struct object *object,
 				  unsigned char *output_stream,
 				  unsigned int capacity,
 				  unsigned int *output_quantity,
@@ -579,7 +579,7 @@ static OIOIC_INLINE int vo_output(struct object *object,
  *       output_quantity --- [OUT] 指向实际输出的Byte数量；
  *       caller_context --- [IN] 来访者。
  */
-static OIOIC_INLINE int
+static NEOIOIC_INLINE int
 vo_io_put(struct object *object, unsigned char *input_stream,
 	  unsigned int quantity, unsigned char *output_stream,
 	  unsigned int capacity, unsigned int *output_quantity,
@@ -621,7 +621,7 @@ vo_io_put(struct object *object, unsigned char *input_stream,
  *       action --- [IN] 交互行为；
  *       caller_context --- [IN] 来访者。
  */
-static OIOIC_INLINE int vo_interact0(struct object *object, unsigned int action,
+static NEOIOIC_INLINE int vo_interact0(struct object *object, unsigned int action,
 				     const struct vr *caller_context)
 {
 	extern int register_caller(struct object * node,
@@ -655,7 +655,7 @@ static OIOIC_INLINE int vo_interact0(struct object *object, unsigned int action,
  *       output_quantity --- [OUT] 指向实际输出的Byte数量；
  *       caller_context --- [IN] 来访者。
  */
-static OIOIC_INLINE int vo_interact1(struct object *object, unsigned int action,
+static NEOIOIC_INLINE int vo_interact1(struct object *object, unsigned int action,
 				     unsigned char *output_stream,
 				     unsigned int capacity,
 				     unsigned int *output_quantity,
@@ -697,7 +697,7 @@ static OIOIC_INLINE int vo_interact1(struct object *object, unsigned int action,
  *       quantity --- [IN] 输入的Byte数量；
  *       caller_context --- [IN] 来访者。
  */
-static OIOIC_INLINE int vo_interact2(struct object *object, unsigned int action,
+static NEOIOIC_INLINE int vo_interact2(struct object *object, unsigned int action,
 				     unsigned char *input_stream,
 				     unsigned int quantity,
 				     const struct vr *caller_context)
@@ -738,7 +738,7 @@ static OIOIC_INLINE int vo_interact2(struct object *object, unsigned int action,
  *       output_quantity --- [OUT] 指向实际输出的Byte数量；
  *       caller_context --- [IN] 来访者。
  */
-static OIOIC_INLINE int
+static NEOIOIC_INLINE int
 vo_interact3(struct object *object, unsigned int action,
 	     unsigned char *input_stream, unsigned int quantity,
 	     unsigned char *output_stream, unsigned int capacity,
@@ -780,7 +780,7 @@ vo_interact3(struct object *object, unsigned int action,
  * 参数：object --- [IN] 指向对象；
  *       caller_context --- [IN] 来访者。
  */
-static OIOIC_INLINE int vo_close(struct object *object,
+static NEOIOIC_INLINE int vo_close(struct object *object,
 				 const struct vr *caller_context)
 {
 	extern int register_caller(struct object * node,
@@ -838,8 +838,8 @@ static OIOIC_INLINE int vo_close(struct object *object,
 		int fr;                                                                \
 		unsigned short i;                                                      \
 		struct vr Caller;                                                      \
-		struct em_oioic *members =                                             \
-			(struct em_oioic *)get_base_members(self, MSN_OIOIC);          \
+		struct em_neoioic *members =                                             \
+			(struct em_neoioic *)get_base_members(self, MSN_NEOIOIC);          \
 		Caller.cr = caller_context->cr;                                        \
 		Caller.mr = self->oid;                                                 \
 		if (0 == ++self->ref_count) {                                          \
@@ -1693,4 +1693,4 @@ extern int vo_close(struct object *object, const struct vr *caller_context);
 
 #endif
 
-#endif /* #ifndef OIOIC_O_H */
+#endif /* #ifndef NEOIOIC_OBJECT_H */

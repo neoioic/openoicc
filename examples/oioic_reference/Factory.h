@@ -1,10 +1,10 @@
 
 
-#ifndef OIOIC_FACTORY_H
-#define OIOIC_FACTORY_H
+#ifndef NEOIOIC_FACTORY_H
+#define NEOIOIC_FACTORY_H
 
 #include "ho.h"
 
 /* Extended Member */
 
-#endif /* #ifndef OIOIC_FACTORY_H */
+#endif /* #ifndef NEOIOIC_FACTORY_H */

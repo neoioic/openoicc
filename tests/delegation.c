@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "ho.h"
-#include "oioic.h"
+#include "neoioic.h"
 
 extern int crt_amphicar(uint64_t *, unsigned int, unsigned int, int,
 			struct object **, unsigned char *);
@@ -21,7 +21,7 @@ static int delegate(struct object *self, unsigned int action,
 		used += self->callers[i].cr != 0;
 	if (used > peak[index])
 		peak[index] = used;
-	if (self->model_id == MSN_OIOIC)
+	if (self->model_id == MSN_NEOIOIC)
 		return RO_OBSOIX;
 	OBS_OBJECT_INTERACT0_;
 	for (i = 0; i < self->direct_base_count; i++)

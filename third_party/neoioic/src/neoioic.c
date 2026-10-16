@@ -1,5 +1,5 @@
 /*
- * OIOIC 节点的 .c 文件。
+ * NEOioic 节点的 .c 文件。
  * 创 建 者：赵平智   <bruce.zhao.zpz@gmail.com>
  * 版权(C)2005-2011 赵平智。保留所有权利。
  */
@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-#include "oioic.h"
+#include "neoioic.h"
 
 /* Interface */
 
@@ -15,7 +15,7 @@
  * open接口。
  * 参数：caller_context --- [IN] 来访者。
  */
-static int oioic_open(struct object *self, const struct vr *caller_context)
+static int neoioic_open(struct object *self, const struct vr *caller_context)
 {
 	if (self->ref_count == UINT_MAX)
 		return RN_FULL;
@@ -29,7 +29,7 @@ static int oioic_open(struct object *self, const struct vr *caller_context)
  *       quantity --- [IN] 输入的Byte数量；
  *       caller_context --- [IN] 来访者。
  */
-static int oioic_input(struct object *self, unsigned char *input_stream,
+static int neoioic_input(struct object *self, unsigned char *input_stream,
 		       unsigned int quantity, const struct vr *caller_context)
 {
 	return RO_SBOOIX;
@@ -42,7 +42,7 @@ static int oioic_input(struct object *self, unsigned char *input_stream,
  *       output_quantity --- [OUT] 指向实际输出的Byte数量；
  *       caller_context --- [IN] 来访者。
  */
-static int oioic_output(struct object *self, unsigned char *output_stream,
+static int neoioic_output(struct object *self, unsigned char *output_stream,
 			unsigned int capacity, unsigned int *output_quantity,
 			const struct vr *caller_context)
 {
@@ -58,7 +58,7 @@ static int oioic_output(struct object *self, unsigned char *output_stream,
  *       output_quantity --- [OUT] 指向实际输出的Byte数量；
  *       caller_context --- [IN] 来访者。
  */
-static int oioic_io_put(struct object *self, unsigned char *input_stream,
+static int neoioic_io_put(struct object *self, unsigned char *input_stream,
 			unsigned int quantity, unsigned char *output_stream,
 			unsigned int capacity, unsigned int *output_quantity,
 			const struct vr *caller_context)
@@ -71,10 +71,10 @@ static int oioic_io_put(struct object *self, unsigned char *input_stream,
  * 参数：action --- [IN] 交互行为；
  *       caller_context --- [IN] 来访者。
  */
-static int oioic_interact0(struct object *self, unsigned int action,
+static int neoioic_interact0(struct object *self, unsigned int action,
 			   const struct vr *caller_context)
 {
-	struct em_oioic *members = (struct em_oioic *)self->members;
+	struct em_neoioic *members = (struct em_neoioic *)self->members;
 
 	switch (action) {
 	case ASK_SHARED: /* 问共享么。 */
@@ -120,12 +120,12 @@ static int oioic_interact0(struct object *self, unsigned int action,
  *       output_quantity --- [OUT] 指向实际输出的Byte数量；
  *       caller_context --- [IN] 来访者。
  */
-static int oioic_interact1(struct object *self, unsigned int action,
+static int neoioic_interact1(struct object *self, unsigned int action,
 			   unsigned char *output_stream, unsigned int capacity,
 			   unsigned int *output_quantity,
 			   const struct vr *caller_context)
 {
-	struct em_oioic *members = (struct em_oioic *)(self->members);
+	struct em_neoioic *members = (struct em_neoioic *)(self->members);
 
 	switch (action) {
 	case GET_IQCTY: /* 获取iq容量。 */
@@ -160,11 +160,11 @@ static int oioic_interact1(struct object *self, unsigned int action,
  *       quantity --- [IN] 输入的Byte数量；
  *       caller_context --- [IN] 来访者。
  */
-static int oioic_interact2(struct object *self, unsigned int action,
+static int neoioic_interact2(struct object *self, unsigned int action,
 			   unsigned char *input_stream, unsigned int quantity,
 			   const struct vr *caller_context)
 {
-	struct em_oioic *members = (struct em_oioic *)(self->members);
+	struct em_neoioic *members = (struct em_neoioic *)(self->members);
 
 	switch (action) {
 	case SET_IQCTY: /* 设置iq容量。 */
@@ -218,7 +218,7 @@ static int oioic_interact2(struct object *self, unsigned int action,
  *       output_quantity --- [OUT] 指向实际输出的Byte数量；
  *       caller_context --- [IN] 来访者。
  */
-static int oioic_interact3(struct object *self, unsigned int action,
+static int neoioic_interact3(struct object *self, unsigned int action,
 			   unsigned char *input_stream, unsigned int quantity,
 			   unsigned char *output_stream, unsigned int capacity,
 			   unsigned int *output_quantity,
@@ -231,7 +231,7 @@ static int oioic_interact3(struct object *self, unsigned int action,
  * close接口。
  * 参数：caller_context --- [IN] 来访者。
  */
-static int oioic_close(struct object *self, const struct vr *caller_context)
+static int neoioic_close(struct object *self, const struct vr *caller_context)
 {
 	if (self->ref_count == 0)
 		return RO_NOPEN;
@@ -241,17 +241,17 @@ static int oioic_close(struct object *self, const struct vr *caller_context)
 
 /* TOG */
 
-void tog_oioic(struct object *object)
+void tog_neoioic(struct object *object)
 {
-	object->open = oioic_open;
-	object->input = oioic_input;
-	object->output = oioic_output;
-	object->io_put = oioic_io_put;
-	object->interact0 = oioic_interact0;
-	object->interact1 = oioic_interact1;
-	object->interact2 = oioic_interact2;
-	object->interact3 = oioic_interact3;
-	object->close = oioic_close;
+	object->open = neoioic_open;
+	object->input = neoioic_input;
+	object->output = neoioic_output;
+	object->io_put = neoioic_io_put;
+	object->interact0 = neoioic_interact0;
+	object->interact1 = neoioic_interact1;
+	object->interact2 = neoioic_interact2;
+	object->interact3 = neoioic_interact3;
+	object->close = neoioic_close;
 }
 
 /* IRF(s) */

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 #include "host.h"
 #include "../objects/project.h"
-#include "oioic.h"
+#include "neoioic.h"
 
 /* Single-threaded reusable node IDs; no allocation needed during destruction. */
 static unsigned char ids[UINT16_MAX + 1];
@@ -33,14 +33,14 @@ int host_create_object(unsigned short model_id, unsigned int input_capacity,
 char host_destroy_object(struct object *object)
 {
 	size_t i;
-	struct em_oioic *root;
+	struct em_neoioic *root;
 	if (!object || object->ref_count)
 		return FALSE;
 	for (i = 0; i < object->node_count; i++)
 		if (object->nodes[i].ref_count)
 			return FALSE;
 	project_clear(object->members);
-	root = get_base_members(object, MSN_OIOIC);
+	root = get_base_members(object, MSN_NEOIOIC);
 	free(root->iq.data);
 	free(root->oq.data);
 	root->iq = (struct queue){ 0 };

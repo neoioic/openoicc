@@ -19,7 +19,7 @@ static int refuse(struct object *self, const struct vr *caller_context)
 
 static void release(struct object *object, int dynamic)
 {
-	struct em_oioic *root = get_base_members(object, MSN_OIOIC);
+	struct em_neoioic *root = get_base_members(object, MSN_NEOIOIC);
 	free(root->iq.data);
 	free(root->oq.data);
 	if (dynamic)
@@ -28,13 +28,13 @@ static void release(struct object *object, int dynamic)
 
 int main(void)
 {
-	const unsigned short models[] = { MSN_AMPHICAR, MSN_CAR, MSN_VEHICLE, MSN_OIOIC, MSN_SHIP };
+	const unsigned short models[] = { MSN_AMPHICAR, MSN_CAR, MSN_VEHICLE, MSN_NEOIOIC, MSN_SHIP };
 	const unsigned short seats[] = { 1, 2, 3, 4, 2 };
 	struct object *object = NULL;
 	uint64_t oid = OID_;
 	struct vr caller = { OID_MAIN, OID_MAIN };
 	union { max_align_t alignment; unsigned char bytes[65536]; } external;
-	struct em_oioic *root;
+	struct em_neoioic *root;
 	float value;
 	unsigned int quantity;
 	size_t i, offset = SIZE_MAX;
@@ -53,7 +53,7 @@ int main(void)
 		CHECK(node->open && node->input && node->output && node->io_put &&
 		      node->interact0 && node->interact1 && node->interact2 && node->interact3 && node->close);
 	}
-	root = get_base_members(object, MSN_OIOIC);
+	root = get_base_members(object, MSN_NEOIOIC);
 	CHECK(root->iq.capacity == 16 && root->oq.capacity == 17);
 	CHECK(!root->iq.front && !root->iq.rear && !root->oq.front && !root->oq.rear);
 	CHECK(RP(vo_open(object, &caller)));
@@ -109,7 +109,7 @@ int main(void)
 	oid = OID_;
 	CHECK(RP(crt_amphicar(&oid, 0, 0, USHRT_MAX / 4, &object, NULL)));
 	CHECK(object->nodes[3].caller_count == (USHRT_MAX / 4) * 4);
-	root = get_base_members(object, MSN_OIOIC);
+	root = get_base_members(object, MSN_NEOIOIC);
 	CHECK(!root->iq.data && !root->oq.data);
 	release(object, 1);
 	memset(external.bytes, 0xa5, sizeof(external.bytes));

@@ -27,7 +27,7 @@ int crt_amphicar(uint64_t *object_id, unsigned int input_capacity,
 				    unsigned short nbn);
 	extern void tog_car(struct object * object);
 	extern void tog_vehicle(struct object * object);
-	extern void tog_oioic(struct object * object);
+	extern void tog_neoioic(struct object * object);
 	extern void tog_ship(struct object * object);
 
 	size_t ux_nd = 5;		     /* ND数量。 */
@@ -37,10 +37,10 @@ int crt_amphicar(uint64_t *object_id, unsigned int input_capacity,
 		return RN_INVALIDARG;
 	size_t ux_cs = (size_t)caller_capacity * 12; /* 各ND的最少CS数量之和。 */
 	size_t ux_em =
-		OIOIC_ALIGNED_SIZE(struct em_car) +
-		OIOIC_ALIGNED_SIZE(struct em_vehicle) +
-		OIOIC_ALIGNED_SIZE(struct em_oioic) +
-		OIOIC_ALIGNED_SIZE(struct em_ship); /* 各ND的void尺寸之和。 */
+		NEOIOIC_ALIGNED_SIZE(struct em_car) +
+		NEOIOIC_ALIGNED_SIZE(struct em_vehicle) +
+		NEOIOIC_ALIGNED_SIZE(struct em_neoioic) +
+		NEOIOIC_ALIGNED_SIZE(struct em_ship); /* 各ND的void尺寸之和。 */
 
 	size_t sum = ux_nd * sizeof(struct object)     /* for AND. */
 		     + ux_bn * sizeof(struct object *) /* for "bases". */
@@ -87,9 +87,9 @@ int crt_amphicar(uint64_t *object_id, unsigned int input_capacity,
 		node->nodes = (struct object *)p_ic;
 		node->node_count = ux_nd;
 
-		/* OIOIC * */
-		tog_oioic(++node);
-		node->model_id = MSN_OIOIC;
+		/* NEOioic * */
+		tog_neoioic(++node);
+		node->model_id = MSN_NEOIOIC;
 		node->oid = (*object_id)++;
 		node->nodes = (struct object *)p_ic;
 		node->node_count = ux_nd;
@@ -117,7 +117,7 @@ int crt_amphicar(uint64_t *object_id, unsigned int input_capacity,
 		node->bases = (struct object **)p;
 		base_msns[0] = MSN_CAR;
 		base_msns[1] = MSN_VEHICLE;
-		base_msns[2] = MSN_OIOIC;
+		base_msns[2] = MSN_NEOIOIC;
 		base_msns[3] = MSN_SHIP;
 		init_base_nodes(node, base_msns, 4);
 		p += sizeof(struct object *) * 4;
@@ -139,7 +139,7 @@ int crt_amphicar(uint64_t *object_id, unsigned int input_capacity,
 		/* - ABN - */
 		node->bases = (struct object **)p;
 		base_msns[0] = MSN_VEHICLE;
-		base_msns[1] = MSN_OIOIC;
+		base_msns[1] = MSN_NEOIOIC;
 		init_base_nodes(node, base_msns, 2);
 		p += sizeof(struct object *) * 2;
 
@@ -150,20 +150,20 @@ int crt_amphicar(uint64_t *object_id, unsigned int input_capacity,
 
 		/* - void - */
 		node->members = (void *)p;
-		p += OIOIC_ALIGNED_SIZE(struct em_car);
+		p += NEOIOIC_ALIGNED_SIZE(struct em_car);
 
 		/* vehicle * */
 		++node;
 
 		/* - AIB - */
 		node->direct_bases = (struct object **)p;
-		base_msns[0] = MSN_OIOIC;
+		base_msns[0] = MSN_NEOIOIC;
 		init_direct_bases(node, base_msns, 1);
 		p += sizeof(struct object *) * 1;
 
 		/* - ABN - */
 		node->bases = (struct object **)p;
-		base_msns[0] = MSN_OIOIC;
+		base_msns[0] = MSN_NEOIOIC;
 		init_base_nodes(node, base_msns, 1);
 		p += sizeof(struct object *) * 1;
 
@@ -174,9 +174,9 @@ int crt_amphicar(uint64_t *object_id, unsigned int input_capacity,
 
 		/* - void - */
 		node->members = (void *)p;
-		p += OIOIC_ALIGNED_SIZE(struct em_vehicle);
+		p += NEOIOIC_ALIGNED_SIZE(struct em_vehicle);
 
-		/* OIOIC * */
+		/* NEOioic * */
 		++node;
 
 		/* - ACS - */
@@ -188,51 +188,51 @@ int crt_amphicar(uint64_t *object_id, unsigned int input_capacity,
 		node->members = (void *)p;
 		if (input_capacity > 0) {
 			/* - iq - */
-			((struct em_oioic *)(node->members))->iq.data =
+			((struct em_neoioic *)(node->members))->iq.data =
 				(unsigned char *)calloc(input_capacity, 1);
 			if (NULL ==
-			    ((struct em_oioic *)(node->members))->iq.data) {
+			    ((struct em_neoioic *)(node->members))->iq.data) {
 				/* 分配iq的容量失败！ */
 				if (NULL == exotic_memory)
 					free(p_ic);
 				return R_N;
 			}
-			((struct em_oioic *)(node->members))->iq.front =
-				((struct em_oioic *)(node->members))->iq.rear =
+			((struct em_neoioic *)(node->members))->iq.front =
+				((struct em_neoioic *)(node->members))->iq.rear =
 					NULL;
-			((struct em_oioic *)(node->members))->iq.capacity =
+			((struct em_neoioic *)(node->members))->iq.capacity =
 				input_capacity;
-			((struct em_oioic *)(node->members))->iq.quantity =
-				((struct em_oioic *)(node->members))->iq.lost =
+			((struct em_neoioic *)(node->members))->iq.quantity =
+				((struct em_neoioic *)(node->members))->iq.lost =
 					0;
 		}
 
 		if (output_capacity > 0) {
 			/* - oq - */
-			((struct em_oioic *)(node->members))->oq.data =
+			((struct em_neoioic *)(node->members))->oq.data =
 				(unsigned char *)calloc(output_capacity, 1);
 			if (NULL ==
-			    ((struct em_oioic *)(node->members))->oq.data) {
+			    ((struct em_neoioic *)(node->members))->oq.data) {
 				/* 分配oq的容量失败！ */
-				if (((struct em_oioic *)(node->members))
+				if (((struct em_neoioic *)(node->members))
 					    ->iq.data != NULL)
-					free(((struct em_oioic
+					free(((struct em_neoioic
 						       *)(node->members))
 						     ->iq.data);
 				if (NULL == exotic_memory)
 					free(p_ic);
 				return R_N;
 			}
-			((struct em_oioic *)(node->members))->oq.front =
-				((struct em_oioic *)(node->members))->oq.rear =
+			((struct em_neoioic *)(node->members))->oq.front =
+				((struct em_neoioic *)(node->members))->oq.rear =
 					NULL;
-			((struct em_oioic *)(node->members))->oq.capacity =
+			((struct em_neoioic *)(node->members))->oq.capacity =
 				output_capacity;
-			((struct em_oioic *)(node->members))->oq.quantity =
-				((struct em_oioic *)(node->members))->oq.lost =
+			((struct em_neoioic *)(node->members))->oq.quantity =
+				((struct em_neoioic *)(node->members))->oq.lost =
 					0;
 		}
-		p += OIOIC_ALIGNED_SIZE(struct em_oioic);
+		p += NEOIOIC_ALIGNED_SIZE(struct em_neoioic);
 
 		/* ship * */
 		++node;
@@ -246,7 +246,7 @@ int crt_amphicar(uint64_t *object_id, unsigned int input_capacity,
 		/* - ABN - */
 		node->bases = (struct object **)p;
 		base_msns[0] = MSN_VEHICLE;
-		base_msns[1] = MSN_OIOIC;
+		base_msns[1] = MSN_NEOIOIC;
 		init_base_nodes(node, base_msns, 2);
 		p += sizeof(struct object *) * 2;
 
@@ -257,7 +257,7 @@ int crt_amphicar(uint64_t *object_id, unsigned int input_capacity,
 
 		/* - void - */
 		node->members = (void *)p;
-		p += OIOIC_ALIGNED_SIZE(struct em_ship);
+		p += NEOIOIC_ALIGNED_SIZE(struct em_ship);
 	} else {
 		return R_N;
 	}

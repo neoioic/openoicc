@@ -3,7 +3,7 @@
 #include "alloc.h"
 #include "openoicc/construct.h"
 
-extern void tog_oioic(struct object *);
+extern void tog_neoioic(struct object *);
 #define CHECK(x) do { if (!(x)) { fprintf(stderr, "line %d: %s\n", __LINE__, #x); return 1; } } while (0)
 
 int main(void)
@@ -12,9 +12,9 @@ int main(void)
 	const unsigned short invalid[] = { 2 };
 	const unsigned short self[] = { 0 };
 	const struct openoicc_layout valid[] = {
-		{ 2, tog_oioic, 0, 1, 1, base, 1, base, 1 },
-		{ MSN_OIOIC, tog_oioic, OIOIC_ALIGNED_SIZE(struct em_oioic),
-		  _Alignof(struct em_oioic), 2, NULL, 0, NULL, 0 }
+		{ 2, tog_neoioic, 0, 1, 1, base, 1, base, 1 },
+		{ MSN_NEOIOIC, tog_neoioic, NEOIOIC_ALIGNED_SIZE(struct em_neoioic),
+		  _Alignof(struct em_neoioic), 2, NULL, 0, NULL, 0 }
 	};
 	struct openoicc_layout layout[2];
 	struct object *object;
@@ -25,7 +25,7 @@ int main(void)
 		memcpy(layout, valid, sizeof(layout));
 		switch (variant) {
 		case 0: layout[0].model_id = 0; break;
-		case 1: layout[0].model_id = MSN_OIOIC; break;
+		case 1: layout[0].model_id = MSN_NEOIOIC; break;
 		case 2: layout[0].bind = NULL; break;
 		case 3: layout[0].seats = 0; break;
 		case 4: layout[0].seats = USHRT_MAX + (size_t)1; break;
@@ -40,7 +40,7 @@ int main(void)
 		case 13: layout[0].bases = invalid; break;
 		case 14: layout[0].direct = self; break;
 		case 15: layout[0].bases = self; break;
-		case 16: layout[1].member_size = sizeof(struct em_oioic) - 1; break;
+		case 16: layout[1].member_size = sizeof(struct em_neoioic) - 1; break;
 		case 17: layout[1].direct = self; layout[1].direct_count = 1; break;
 		case 18: layout[1].bases = self; layout[1].base_count = 1; break;
 		case 19: layout[0].member_size = SIZE_MAX; break;

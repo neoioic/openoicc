@@ -11,7 +11,7 @@ extern struct object *g_p_amphicar;
 /* OICC label */
 
 /* <oicc> */
-/* <ibn> OIOIC </ibn> */
+/* <ibn> NEOioic </ibn> */
 /* <crt> */
 /* </crt> */
 /* </oicc> */

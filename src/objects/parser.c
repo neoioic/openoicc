@@ -20,7 +20,7 @@ int identifier_valid(const char *name)
 
 int node_name_valid(const char *name)
 {
-	const char *root = "OIOIC";
+	const char *root = "NEOIOIC";
 	if (!identifier_valid(name))
 		return 0;
 	while (*name && *root && toupper((unsigned char)*name) == *root) {
@@ -89,7 +89,7 @@ static int parse_bases(struct node *node, const char *first, const char *last)
 		if (next == last)
 			return node_diagnostic(node, 0, "trailing comma in bases");
 	}
-	return node->direct_count != 0 || node_diagnostic(node, 0, "at least one base is required (use OIOIC)");
+	return node->direct_count != 0 || node_diagnostic(node, 0, "at least one base is required (use NEOioic)");
 }
 
 /* Markers must occur in comments. Replacement boundaries are whole standalone

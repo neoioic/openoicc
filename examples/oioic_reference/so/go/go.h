@@ -1,8 +1,8 @@
 
 
-#ifndef OIOIC_FACTORY_GO_H
-#define OIOIC_FACTORY_GO_H
+#ifndef NEOIOIC_FACTORY_GO_H
+#define NEOIOIC_FACTORY_GO_H
 
 #include "../so.h"
 
-#endif /* #ifndef OIOIC_FACTORY_GO_H */
+#endif /* #ifndef NEOIOIC_FACTORY_GO_H */

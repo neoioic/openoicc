@@ -1,7 +1,7 @@
 
 
-#ifndef OIOIC_VEHICLE_H
-#define OIOIC_VEHICLE_H
+#ifndef NEOIOIC_VEHICLE_H
+#define NEOIOIC_VEHICLE_H
 
 #include "../go.h"
 
@@ -11,4 +11,4 @@ struct em_vehicle {
 	float weight; /* 重量，以吨为单位。 */
 };
 
-#endif /* #ifndef OIOIC_VEHICLE_H */
+#endif /* #ifndef NEOIOIC_VEHICLE_H */

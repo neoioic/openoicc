@@ -5,7 +5,7 @@
 /* OICC label */
 
 /* <oicc> */
-/* <ibn> OIOIC </ibn> */
+/* <ibn> NEOioic </ibn> */
 /* <crt> */
 /* </crt> */
 /* </oicc> */

@@ -1,0 +1,166 @@
+{
+    "project": "NEOioic",
+    "version": "1.0.18",
+    "revision": "f1f49487d32a8bfd272fab0d06ad5ccbb34e13f6",
+    "imported_on": "2026-10-16",
+    "files": [
+        {
+            "source": "examples/multiple_inheritance/Factory.c",
+            "destination": "examples/oioic_reference/Factory.c",
+            "sha256": "70c1b2449b818fab7df1c62f0c53776b136adb0aeecc6563dbf8ded103290935",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/Factory.h",
+            "destination": "examples/oioic_reference/Factory.h",
+            "sha256": "96571245669e7b54d89ec62cb9b9269d4b2a1b05a715d79d1b69167bf393f5cf",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/ho.c",
+            "destination": "examples/oioic_reference/ho.c",
+            "sha256": "b919f5d4f46724a823e0743160f86871634f3ad66bef6588998aedc0c8b132f6",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/ho.h",
+            "destination": "examples/oioic_reference/ho.h",
+            "sha256": "72e5b75b14363429212a7b7538cf1614c7ff617db34bc53becaff3e68befe8ce",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/se/se.h",
+            "destination": "examples/oioic_reference/se/se.h",
+            "sha256": "5e9df83d971859b98a696b3896bff138ca8774ff4d292ccd98c026d254a0797a",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/so/ao/ao.h",
+            "destination": "examples/oioic_reference/so/ao/ao.h",
+            "sha256": "570f26f7ec1be18d9a1dfafdb3eca99cedbcc3daaac76ceecabbb1a8151dec1d",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/so/ao/Main/Main.c",
+            "destination": "examples/oioic_reference/so/ao/Main/Main.c",
+            "sha256": "5f004e68ca596c785f4e3b767d0d72eebbb9d61478f923c9744b3cc1a2ea6996",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/so/ao/Main/Main.h",
+            "destination": "examples/oioic_reference/so/ao/Main/Main.h",
+            "sha256": "230a18c5276f2ca6790ea38fa5907ebfcc241362315f89d3ca3f1420c22eb31c",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/so/go/amphicar/amphicar.c",
+            "destination": "examples/oioic_reference/so/go/amphicar/amphicar.c",
+            "sha256": "67bbacd6d99ef1d1c2481f5c6a542524aa7923b60adf9233bcf9cd5f57256282",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/so/go/amphicar/amphicar.h",
+            "destination": "examples/oioic_reference/so/go/amphicar/amphicar.h",
+            "sha256": "631436d9d7dfcfd3c7ffb31107f0feab2269b9706c6875f5a6ea59318154beb8",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/so/go/car/car.c",
+            "destination": "examples/oioic_reference/so/go/car/car.c",
+            "sha256": "192512b1a5485cab156317d81d70b2feb9eeccb32e9c8929f437db928b10bea5",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/so/go/car/car.h",
+            "destination": "examples/oioic_reference/so/go/car/car.h",
+            "sha256": "dc1fbc40f3ef120e8b1d003b7541e0863c56fb2a62f97f430b894c6358bd50dc",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/so/go/go.h",
+            "destination": "examples/oioic_reference/so/go/go.h",
+            "sha256": "00c4734fc2b88a16d67d0ba1e605b85f4942b3918449c06fc97ee1455a239d1e",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/so/go/ship/ship.c",
+            "destination": "examples/oioic_reference/so/go/ship/ship.c",
+            "sha256": "f3e2726c672a6952a96e33ea2bcce120d990c62b2f605e0d83c571f9d7ac4bfa",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/so/go/ship/ship.h",
+            "destination": "examples/oioic_reference/so/go/ship/ship.h",
+            "sha256": "ddba916675ec21d8f59685e3cdba6d698d8b5b1152204184737de461f8250f55",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/so/go/vehicle/vehicle.c",
+            "destination": "examples/oioic_reference/so/go/vehicle/vehicle.c",
+            "sha256": "3a3041938fb746261038c6fa3056222020c54b90dcc9da1c36311eb5faa9a1c2",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/so/go/vehicle/vehicle.h",
+            "destination": "examples/oioic_reference/so/go/vehicle/vehicle.h",
+            "sha256": "ac462842716f9a7f942a4d2d78f8febf08b6b533377c2aa1c15bffbf71a27de3",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "examples/multiple_inheritance/so/so.h",
+            "destination": "examples/oioic_reference/so/so.h",
+            "sha256": "c5965c44f92a4fa2782a50333aa5b35da6ddbf2f5b567e1fb6152f56792eb872",
+            "revision": "9dad644e8bae1fbdba4ced0965627dda06c3e7e3",
+            "local_changes": "Migrated root node names, API identifiers and headers to NEOioic; original layout and business logic retained."
+        },
+        {
+            "source": "include/object.h",
+            "destination": "third_party/neoioic/include/object.h",
+            "sha256": "d2bb885d5f080783f183c4b7922c2d4633246865171f677330d2fad498b8ee1e"
+        },
+        {
+            "source": "include/neoioic.h",
+            "destination": "third_party/neoioic/include/neoioic.h",
+            "sha256": "be353eabad2f7ba01ae37a1c200c1252c102af0ef40c0bffd634065d6442dda6"
+        },
+        {
+            "source": "LICENSE",
+            "destination": "third_party/neoioic/LICENSE",
+            "sha256": "5c5b2b603bc4db1422ca0dcec021f3f891c2097e9d279abcc49fd48537c03f92"
+        },
+        {
+            "source": "src/object.c",
+            "destination": "third_party/neoioic/src/object.c",
+            "sha256": "ac93cb02a667a76a3e85fc44873f295ab053f25faee1089cb4efad33bcfc9b68"
+        },
+        {
+            "source": "src/neoioic.c",
+            "destination": "third_party/neoioic/src/neoioic.c",
+            "sha256": "8c0d60b7279aa2fd03171c1df84e76a24da2ff425f8ef9d28a4f8827d5cc34a2"
+        },
+        {
+            "source": "src/xmake.lua",
+            "destination": "third_party/neoioic/src/xmake.lua",
+            "sha256": "280ae3fdbfd74a793e658ac56e0b61dd9d0ab80cee26d16b0a6ecbc9f5b51362"
+        }
+    ],
+    "source_state": "working_tree",
+    "note": "Core snapshot taken from the NEOioic working tree based on revision above; uncommitted renames pinned by source paths and SHA-256. Reference examples retain their original OIOIC import revision and record local API migration per file."
+}

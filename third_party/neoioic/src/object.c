@@ -1,13 +1,13 @@
 /*
- * o.c 文件。
+ * object.c 文件。
  * 创 建 者：赵平智   <bruce.zhao.zpz@gmail.com>
  * 版权(C)2005-2011 赵平智。保留所有权利。
  */
 
 #include <stdlib.h>
 #include <string.h>
-#include "o.h"
-#include "oioic.h"
+#include "object.h"
+#include "neoioic.h"
 
 /* init_direct_bases & init_base_nodes */
 
@@ -297,8 +297,8 @@ struct queue *get_iq(struct object *node)
 	assert(node != NULL);
 
 	for (i = 0; i < node->base_count; i++) {
-		if (MSN_OIOIC == (*(node->bases + i))->model_id)
-			return &((struct em_oioic *)((*(node->bases + i))
+		if (MSN_NEOIOIC == (*(node->bases + i))->model_id)
+			return &((struct em_neoioic *)((*(node->bases + i))
 							     ->members))
 					->iq;
 	}
@@ -318,8 +318,8 @@ struct queue *get_oq(struct object *node)
 	assert(node != NULL);
 
 	for (i = 0; i < node->base_count; i++) {
-		if (MSN_OIOIC == (*(node->bases + i))->model_id)
-			return &((struct em_oioic *)((*(node->bases + i))
+		if (MSN_NEOIOIC == (*(node->bases + i))->model_id)
+			return &((struct em_neoioic *)((*(node->bases + i))
 							     ->members))
 					->oq;
 	}

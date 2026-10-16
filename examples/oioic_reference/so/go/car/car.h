@@ -1,7 +1,7 @@
 
 
-#ifndef OIOIC_CAR_H
-#define OIOIC_CAR_H
+#ifndef NEOIOIC_CAR_H
+#define NEOIOIC_CAR_H
 
 #include "../go.h"
 
@@ -12,4 +12,4 @@ struct em_car {
 	float max_velocity; /* 最大速度，以千米/小时为单位。 */
 };
 
-#endif /* #ifndef OIOIC_CAR_H */
+#endif /* #ifndef NEOIOIC_CAR_H */

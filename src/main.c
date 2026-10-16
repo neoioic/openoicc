@@ -6,10 +6,11 @@
 
 static void usage(void)
 {
-	puts("Usage: openoicc new NAME PATH.c [BASES]\n"
+	puts("OpenOICC generates C node constructors for NEOioic.\n"
+	     "Usage: openoicc new NAME PATH.c [BASES]\n"
 	     "       openoicc check FILE.c...\n"
 	     "       openoicc generate [--write] FILE.c...\n"
-	     "BASES is a quoted comma-separated list (default OIOIC).\n"
+	     "BASES is a quoted comma-separated list (default NEOioic).\n"
 	     "generate previews changes unless --write is specified.");
 }
 
@@ -31,7 +32,7 @@ int main(int argc, char **argv)
 			usage();
 			return 2;
 		}
-		return node_create(argv[2], argv[3], argc == 5 ? argv[4] : "OIOIC") ? 0 : 1;
+		return node_create(argv[2], argv[3], argc == 5 ? argv[4] : "NEOioic") ? 0 : 1;
 	}
 	if (argc < 3 || (strcmp(argv[1], "generate") && strcmp(argv[1], "check"))) {
 		usage();

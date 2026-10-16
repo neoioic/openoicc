@@ -7,7 +7,7 @@
 
 #include <limits.h>
 #include <string.h>
-#include "oioic.h"
+#include "neoioic.h"
 
 struct openoicc_layout {
 	unsigned short model_id;
@@ -47,7 +47,7 @@ static inline int openoicc_construct(const struct openoicc_layout *layout, size_
 	size_t size = 0, offset, i, j;
 	unsigned char *memory;
 	struct object *nodes;
-	struct em_oioic *root = NULL;
+	struct em_neoioic *root = NULL;
 	uint64_t next;
 
 	if (object_out)
@@ -73,8 +73,8 @@ static inline int openoicc_construct(const struct openoicc_layout *layout, size_
 			return RN_INVALIDARG;
 		if ((item->direct_count && !item->direct) ||
 		    (item->base_count && !item->bases) ||
-		    (item->model_id == MSN_OIOIC &&
-		     (item->member_size < sizeof(struct em_oioic) ||
+		    (item->model_id == MSN_NEOIOIC &&
+		     (item->member_size < sizeof(struct em_neoioic) ||
 		      item->direct_count || item->base_count)))
 			return RN_INVALIDARG;
 		for (j = 0; j < i; j++)
@@ -132,7 +132,7 @@ static inline int openoicc_construct(const struct openoicc_layout *layout, size_
 		node->callers = (struct vr *)(memory + offset);
 		openoicc_reserve(&size, 1, item->member_size, _Alignof(struct object), &offset);
 		node->members = item->member_size ? memory + offset : NULL;
-		if (item->model_id == MSN_OIOIC)
+		if (item->model_id == MSN_NEOIOIC)
 			root = node->members;
 	}
 	if (!root)

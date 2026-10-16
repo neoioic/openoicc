@@ -31,7 +31,7 @@ int node_create(const char *name, const char *path, const char *bases)
 		fprintf(stderr, "invalid or reserved node name\n");
 		return 0;
 	}
-	ADD("/* SPDX-License-Identifier: MIT */\n#include \"host.h\"\n#include \"oioic.h\"\n\n/* <oicc> */\n/* <ibn> %s </ibn> */\n/* <crt> */\n/* </crt> */\n/* </oicc> */\n\n", bases);
+	ADD("/* SPDX-License-Identifier: MIT */\n#include \"host.h\"\n#include \"neoioic.h\"\n\n/* <oicc> */\n/* <ibn> %s </ibn> */\n/* <crt> */\n/* </crt> */\n/* </oicc> */\n\n", bases);
 	ADD("static int %s_open(struct object *self, const struct vr *caller_context)\n{\n\tOBS_OBJECT_OPEN_;\n\treturn R_P;\n}\n\n", name);
 	for (i = 0; i < 7; i++)
 		ADD("static int %s_%s(struct object *self, %s,\n\tconst struct vr *caller_context)\n{\n\tSBO_OBJECT_%s;\n}\n\n", name, interfaces[i], parameters[i], dispatch[i]);

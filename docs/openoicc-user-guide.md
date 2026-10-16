@@ -1,10 +1,10 @@
 # OpenOICC 用户指南
 
-OpenOICC 读取带有 OIOIC 标记的 C 节点文件，检查继承关系，并在指定区域生成 `crt_name` 构造函数。接口实现、成员定义和业务代码由节点作者维护。正式名称为 OpenOICC，命令、文件名和代码标识使用 `openoicc`；输入语法中的 `<oicc>` 标记保持不变。
+OpenOICC 读取带有 NEOioic 标记的 C 节点文件，检查继承关系，并在指定区域生成 `crt_name` 构造函数。接口实现、成员定义和业务代码由节点作者维护。正式名称为 OpenOICC，命令、文件名和代码标识使用 `openoicc`；输入语法中的 `<oicc>` 标记保持不变。
 
 ## 构建与运行
 
-需要 xmake 和支持 C11 的完整 GCC 或 Clang 工具链。Python 3 仅用于回归测试。OIOIC 运行时随仓库提供，不需要额外下载。
+需要 xmake 和支持 C11 的完整 GCC 或 Clang 工具链。Python 3 仅用于回归测试。NEOioic 运行时随仓库提供，不需要额外下载。
 
 Windows 将完整 MinGW-w64 加入 PATH，然后在仓库根目录执行：
 
@@ -26,14 +26,14 @@ Linux 的配置命令为 `xmake f -P . --toolchain=gcc -m debug`，后续命令�
 xmake run -P . openoicc new boat build/quickstart/boat.c
 ```
 
-目标目录须存在，文件名须与节点名一致，`new` 不覆盖已有文件。节点名以 ASCII 字母开头，后接字母、数字或下划线；`OIOIC` 的任意大小写形式保留。默认直接基节点为 `OIOIC`。
+目标目录须存在，文件名须与节点名一致，`new` 不覆盖已有文件。节点名以 ASCII 字母开头，后接字母、数字或下划线；`NEOioic` 的任意大小写形式保留。默认直接基节点为 `NEOioic`。
 
 生成的 `boat.c` 包含九个接口及完整绑定，构造区暂时为空。创建 `build/quickstart/host.h`：
 
 ```c
 #ifndef QUICKSTART_HOST_H
 #define QUICKSTART_HOST_H
-#include "oioic.h"
+#include "neoioic.h"
 #define MSN_BOAT MSN_
 #endif
 ```
@@ -88,7 +88,7 @@ int main(void)
 从仓库根目录编译，以下命令为一行：
 
 ```sh
-gcc -std=c11 -Wall -Wextra -Iinclude -Ithird_party/oioic/include -Ibuild/quickstart build/quickstart/main.c build/quickstart/boat.c third_party/oioic/src/o.c third_party/oioic/src/oioic.c -o build/quickstart/boat-demo
+gcc -std=c11 -Wall -Wextra -Iinclude -Ithird_party/neoioic/include -Ibuild/quickstart build/quickstart/main.c build/quickstart/boat.c third_party/neoioic/src/object.c third_party/neoioic/src/neoioic.c -o build/quickstart/boat-demo
 ```
 
 Windows 运行 `./build/quickstart/boat-demo.exe`，Linux 运行 `./build/quickstart/boat-demo`，预期输出 `boat lifecycle passed`。正式应用需由宿主管理 OID 分配回收、创建选择及资源销毁，可参考 [仓库宿主](../src/host/host.c) 和 [继承示例](../examples/oioic_reference/README.md)。启用队列或业务资源后，需先清理相应资源，不能仅释放本体。
@@ -136,17 +136,17 @@ struct em_boat {
 
 ## 接入应用与常见问题
 
-生成代码依赖 `openoicc/construct.h`、当前 OIOIC 头文件和运行时。分发生成代码时需同时提供该辅助头文件和运行时，并保留 MIT 许可。应用还需链接所有祖先节点的业务实现，提供相应的模型编号和成员定义。
+生成代码依赖 `openoicc/construct.h`、当前 NEOioic 头文件和运行时。NEOioic 由 OIOIC 发展而来，未来可能有不兼容更新；请使用与生成器配套的运行时快照，升级时重新核对 [生成契约](openoicc.md) 并验证生成代码。分发生成代码时需同时提供该辅助头文件和运行时，并保留 MIT 许可。应用还需链接所有祖先节点的业务实现，提供相应的模型编号和成员定义。
 
 对象生命周期为构造 → `vo_open` → `vo_*` 业务调用 → `vo_close` → 宿主清理和销毁。用 `RN/RO/RP` 判断结果域；调用上下文 `cr`、`mr` 均须非零。`RN_CLOSEPARTIAL` 状态仅允许重试关闭。外部存储由调用者保证容量和对齐，并由存储拥有者释放本体；不得使用会释放本体的 `destroy_object` 宏。
 
 | 现象 | 处理方式 |
 | --- | --- |
-| `unknown base node` | 补充该基节点及其全部祖先的 `.c` 参数；根 OIOIC 无须文件。 |
+| `unknown base node` | 补充该基节点及其全部祖先的 `.c` 参数；根 NEOioic 无须文件。 |
 | 创建失败 | 检查目录、写权限、节点名与文件名；已有文件不会覆盖。路径含空格时整体加引号。 |
 | 标记或绑定错误 | 检查注释顺序、作用域及唯一的 `tog_name` 定义，保留完整九接口绑定。 |
 | 缺少 `host.h`、`MSN_*` 或成员类型 | 提供应用头文件，配置 include 路径，使完整定义可见。 |
-| 链接缺少 `tog_*` / `vo_*` | 链接全部祖先节点实现及 OIOIC 运行时。 |
+| 链接缺少 `tog_*` / `vo_*` | 链接全部祖先节点实现及 NEOioic 运行时。 |
 | 构造返回失败 | 检查模型编号、正数 caller_capacity、席位上限、对齐、OID 余量和内存分配。 |
 | 写入失败 | 检查权限、文件占用与并发编辑；查看已提交文件记录，排除原因后重试。 |
 

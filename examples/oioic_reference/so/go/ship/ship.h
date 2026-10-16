@@ -1,7 +1,7 @@
 
 
-#ifndef OIOIC_SHIP_H
-#define OIOIC_SHIP_H
+#ifndef NEOIOIC_SHIP_H
+#define NEOIOIC_SHIP_H
 
 #include "../go.h"
 
@@ -12,4 +12,4 @@ struct em_ship {
 	float max_velocity; /* 最大速度，以千米/小时为单位。 */
 };
 
-#endif /* #ifndef OIOIC_SHIP_H */
+#endif /* #ifndef NEOIOIC_SHIP_H */

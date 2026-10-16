@@ -59,7 +59,7 @@ int node_generate(struct em_project *project, size_t index)
 	EMIT("int crt_%s(uint64_t *object_id, unsigned int input_capacity,\n\tunsigned int output_capacity, int caller_capacity,\n\tstruct object **object_out, unsigned char *exotic_memory)\n{\n", target->name);
 	for (i = 0; i < count; i++) {
 		size_t id = order[i];
-		const char *name = id == project->count ? "oioic" : project->nodes[id].name;
+		const char *name = id == project->count ? "neoioic" : project->nodes[id].name;
 		EMIT("\textern void tog_%s(struct object *);\n", name);
 		EMIT("\t_Static_assert(");
 		if (!model_name(&code, name))
@@ -87,13 +87,13 @@ int node_generate(struct em_project *project, size_t index)
 		size_t id = order[i], base_count = 0;
 		int root = id == project->count;
 		struct node *node = root ? NULL : project->nodes + id;
-		const char *name = root ? "oioic" : node->name;
+		const char *name = root ? "neoioic" : node->name;
 		EMIT("\t\t{ ");
 		if (!model_name(&code, name))
 			goto done;
 		EMIT(", tog_%s,\n\t\t  ", name);
 		if (root || node->has_members)
-			EMIT("OIOIC_ALIGNED_SIZE(struct em_%s),\n\t\t  _Alignof(struct em_%s), ", name, name);
+			EMIT("NEOIOIC_ALIGNED_SIZE(struct em_%s),\n\t\t  _Alignof(struct em_%s), ", name, name);
 		else
 			EMIT("0, 1, ");
 		EMIT("%zu, ", seats[id]);

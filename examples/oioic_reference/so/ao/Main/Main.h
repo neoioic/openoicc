@@ -1,10 +1,10 @@
 
 
-#ifndef OIOIC_MAIN_H
-#define OIOIC_MAIN_H
+#ifndef NEOIOIC_MAIN_H
+#define NEOIOIC_MAIN_H
 
 #include "../ao.h"
 
 /* Extended Member */
 
-#endif /* #ifndef OIOIC_MAIN_H */
+#endif /* #ifndef NEOIOIC_MAIN_H */

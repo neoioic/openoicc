@@ -1,9 +1,9 @@
 
 
-#ifndef OIOIC_HO_FACTORY_H
-#define OIOIC_HO_FACTORY_H
+#ifndef NEOIOIC_HO_FACTORY_H
+#define NEOIOIC_HO_FACTORY_H
 
-#include "oioic.h"
+#include "neoioic.h"
 
 /* oid(s) and OID_ */
 
@@ -113,4 +113,4 @@
 /* X3对象模的私有AC0交互行为：* */
 /* #define     XXX_YYYYY         (AC0 | (AC0_PVT_YYY_  + 0)) */
 
-#endif /* #ifndef OIOIC_HO_FACTORY_H */
+#endif /* #ifndef NEOIOIC_HO_FACTORY_H */

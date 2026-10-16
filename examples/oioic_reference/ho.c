@@ -71,7 +71,7 @@ int host_create_object(unsigned short model_id, unsigned int input_capacity,
 	int fr;
 	uint64_t oidbak;
 
-	struct em_oioic *members;
+	struct em_neoioic *members;
 	int idd; /* struct doid的指标。idd - the index of struct doid */
 
 	if ((caller_capacity < 1) ||
@@ -118,10 +118,10 @@ int host_create_object(unsigned short model_id, unsigned int input_capacity,
 		} else if ((MSKSO & gs_tad.oid) < (MSKSO & oidbak)) {
 			gs_tad.oid = oidbak;
 
-			members = (struct em_oioic *)get_base_members(
+			members = (struct em_neoioic *)get_base_members(
 				exotic_memory != NULL ?
 					(struct object *)exotic_memory : *object_out,
-				MSN_OIOIC);
+				MSN_NEOIOIC);
 			if (members->iq.data != NULL)
 				free(members->iq.data);
 			if (members->oq.data != NULL)
@@ -159,12 +159,12 @@ char host_destroy_object(struct object *object)
 {
 	struct doid *ptr;
 	int idd; /* struct doid的指标。idd - the index of struct doid */
-	struct em_oioic *members;
+	struct em_neoioic *members;
 
 	if (NULL == object)
 		return FALSE;
 
-	members = (struct em_oioic *)get_base_members(object, MSN_OIOIC);
+	members = (struct em_neoioic *)get_base_members(object, MSN_NEOIOIC);
 
 	if (NULL == gs_tad.pad) {
 		if (gs_tad.neo - 1 > 0) {

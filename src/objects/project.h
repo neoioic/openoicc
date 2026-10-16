@@ -2,7 +2,7 @@
 #ifndef OPENOICC_PROJECT_H
 #define OPENOICC_PROJECT_H
 #include "../support/text.h"
-#include "o.h"
+#include "object.h"
 struct node {
 	char *name;
 	const char *path;

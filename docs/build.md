@@ -2,9 +2,9 @@
 
 ## 依赖与目标
 
-需要 xmake 和支持 C11 的完整 GCC 或 Clang 工具链。OIOIC 源码在仓库内，不需要子模块、另一个工作区、旧生成器或构建时下载。
+需要 xmake 和支持 C11 的完整 GCC 或 Clang 工具链。NEOioic 源码在仓库内，不需要子模块、另一个工作区、旧生成器或构建时下载。
 
-目标为 `oioic` 静态库、`openoicc` 生成器和 `oioic_reference` 控制台参考程序。默认构建库与生成器；参考程序显式选择。首次使用见 [OpenOICC 用户指南](openoicc-user-guide.md)，完整规则见 [命令与生成契约](openoicc.md)。Python 3 仅用于回归测试。
+目标为 `neoioic` 静态库、`openoicc` 生成器和 `oioic_reference` 控制台参考程序。默认构建库与生成器；参考程序显式选择。首次使用见 [OpenOICC 用户指南](openoicc-user-guide.md)，完整规则见 [命令与生成契约](openoicc.md)。Python 3 仅用于回归测试。
 
 ## Windows
 
@@ -50,7 +50,7 @@ Linux 将可执行路径替换为 `build/linux/x86_64/debug/openoicc`（Release 
 
 ## GitHub Actions 与 Nightly
 
-[nightly.yml](../.github/workflows/nightly.yml) 在分支推送、PR 和手动触发时运行 Windows 2022、Ubuntu 24.04 的 x86_64 × GCC/Clang × Debug/Release 八项构建。使用 xmake 构建工具、仓库内 OIOIC 静态库和参考程序，以 `--ldflags=-static` 静态链接；Linux 检查 ELF 无解释器和动态依赖，Windows 检查不依赖编译器运行时 DLL（Windows 系统 DLL 仍由系统提供）。各配置运行版本命令和参考程序，四项 Debug 配置用对应编译器执行完整 Python 回归，包括生成代码运行、失败清理和自举。
+[nightly.yml](../.github/workflows/nightly.yml) 在分支推送、PR 和手动触发时运行 Windows 2022、Ubuntu 24.04 的 x86_64 × GCC/Clang × Debug/Release 八项构建。使用 xmake 构建工具、仓库内 NEOioic 静态库和参考程序，以 `--ldflags=-static` 静态链接；Linux 检查 ELF 无解释器和动态依赖，Windows 检查不依赖编译器运行时 DLL（Windows 系统 DLL 仍由系统提供）。各配置运行版本命令和参考程序，四项 Debug 配置用对应编译器执行完整 Python 回归，包括生成代码运行、失败清理和自举。
 
 Windows 使用 MSYS2 UCRT64 的 GCC、Clang、Python 和 xmake，Linux 安装系统 GCC/Clang 并使用 xmake 2.9.6。测试也可本地显式选择编译器：
 
@@ -75,3 +75,5 @@ GitHub 附件替换不是事务：上传中断可能留下部分更新的附件�
 2026-10-15：Windows x86_64、MinGW-w64 GCC 下，重新构建 Debug/Release，分别执行上述完整测试命令，均为 36 个测试方法全部通过（Debug 约 57 秒、Release 约 74 秒）。新增边界矩阵、随机图运行及故障注入范围见 [测试说明](../tests/README.md)。本轮修复构造区作用域、宏伪绑定与错误返回类型、根名称大小写冲突、孤立 CR、NULL 构造布局及非法对齐值检查。全部仓库文本检查为 LF，`git diff --check` 通过。第三方材料核查后均仍用于构建、行为对照、来源或许可记录，未移除任何第三方材料；测试未修改仓库外文件或系统配置。仍未执行 Linux 或 Clang 验证。
 
 同日更名与文档核对：正式名称统一为 OpenOICC，构建目标、命令、公共头文件目录及测试入口统一为 `openoicc`；输入 `<oicc>` 标记不变。更名后 Windows MinGW Debug/Release 各 36 个测试全部通过（约 53 秒、80 秒）。随后仅调整版本显示和生成代码署名为正式大小写，两种配置重新构建，并分别复测命令行与自举再生通过。用户指南的最小示例从文档提取后实际生成、编译及运行成功，输出 `boat lifecycle passed`；GCC 对原运行时给出已有的未使用参数警告。本地 Markdown 链接、LF 和差异空白检查通过。
+
+2026-10-17：OpenOICC 明确面向 NEOioic，并同步仓库内运行时快照、根节点名称和生成 API。Windows x86_64、MinGW-w64 GCC 下，按上述命令构建工具和参考程序的 Debug/Release，两种配置的参考程序均运行成功；完整回归各 36 项通过（约 64 秒、97 秒），包含生成代码运行、失败清理和自举重编译。显式检查自身构造区再生无差异；从用户指南提取最小示例后重新生成、编译并运行，输出 `boat lifecycle passed`。运行时来源校验值（允许 LF 规范化）、本地 Markdown 链接、UTF-8/LF 和 `git diff --check` 均通过。本次未执行 Linux、Clang 或 GitHub Actions 验证。

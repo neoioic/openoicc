@@ -128,7 +128,7 @@ jobs:
           output.mkdir(parents=True, exist_ok=True)
           with zipfile.ZipFile(output / os.environ['ARCHIVE'], 'w', zipfile.ZIP_DEFLATED) as archive:
               archive.write(binary, binary.name)
-              for name in ['LICENSE', 'THIRD_PARTY_NOTICES.md', 'third_party/oioic/LICENSE']:
+              for name in ['LICENSE', 'THIRD_PARTY_NOTICES.md', 'third_party/neoioic/LICENSE']:
                   archive.write(name, name)
               archive.writestr('BUILD_INFO.txt', 'OpenOICC Nightly\nCommit: ' + os.environ['GITHUB_SHA'] + '\n')
           PY

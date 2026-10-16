@@ -80,7 +80,9 @@ int file_regular(const char *path)
 	if (lstat(path, &link_info) || S_ISLNK(link_info.st_mode))
 		return 0;
 #endif
-	return (info.st_mode & S_IFMT) == S_IFREG;
+	/* S_IFMT/S_IFREG are optional visibility macros in strict C modes;
+	 * S_ISREG is the POSIX portable predicate for the same check. */
+	return S_ISREG(info.st_mode);
 }
 
 int file_read(const char *path, struct text *text)

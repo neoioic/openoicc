@@ -1,6 +1,6 @@
 # NEOioic 对象模型与生成契约
 
-本文件从 OIOIC 1.0.18 的架构、教程、代码风格及旧工具说明中提炼模型，并按由其发展而来的 NEOioic 当前 API 更新，供 OpenOICC 开发者在本仓库内阅读。设计者为赵平智，来源及 MIT 许可见 [第三方声明](../THIRD_PARTY_NOTICES.md)。接口行为以 [公共头文件](../third_party/neoioic/include/object.h) 和仓库内运行时源码为准；历史 OIOIC 资料不构成兼容承诺。
+本文件说明 OpenOICC 面向的 [NEOioic](https://github.com/neoioic/neoioic) 对象模型与生成契约，供开发者在本仓库内阅读。来源及 MIT 许可见 [第三方声明](../THIRD_PARTY_NOTICES.md)。接口行为以 [公共头文件](../third_party/neoioic/include/object.h) 和仓库内运行时源码为准；历史 OIOIC 资料不构成兼容承诺。
 
 ## 模块边界与节点
 

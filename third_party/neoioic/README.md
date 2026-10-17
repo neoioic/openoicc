@@ -2,7 +2,7 @@
 
 本目录提供 OpenOICC 自身和生成代码使用的 C11 对象运行时，源码随仓库分发，不需要外部检出或下载步骤。
 
-- 项目：NEOioic（由赵平智设计的 OIOIC 发展而来）。
+- 项目：[NEOioic](https://github.com/neoioic/neoioic)。
 - 核心基线：OIOIC 1.0.18；当前 API 使用 NEOioic 命名。
 - 导入基线：提交 `f1f49487d32a8bfd272fab0d06ad5ccbb34e13f6` 基础上的 NEOioic 工作区快照（2026-10-16），包含尚未提交的重命名；具体内容由来源路径和 SHA-256 固定，不将该提交本身视为完整快照。
 - 内容：两个公共头文件、两个核心 C 文件、静态库构建定义和原 MIT 许可证。
@@ -14,4 +14,4 @@
 
 模型要点已提炼至 [本地参考文档](../../docs/oioic-reference.md)，可运行的宿主和继承示例在 [参考示例](../../examples/oioic_reference/README.md)。上游预编译生成器、WGI、历史教材、Git 元数据和缓存未导入。
 
-许可见 [LICENSE](LICENSE)。保留源码原有的赵平智作者声明。
+许可见 [LICENSE](LICENSE)。保留源码原有的作者与版权声明。

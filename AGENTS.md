@@ -4,7 +4,7 @@
 
 本项目使用 NEOioic 实现 OpenOICC：以 C 编写、以 NEOioic 对象接口和组合组织功能的节点创建与构造代码生成工具。正式名称使用 OpenOICC，命令、文件名及代码标识使用 openoicc，输入标记保留 `<oicc>`。工具读取节点定义及继承关系，生成可由普通 C 编译器编译的代码；NEOioic 既是工具自身使用的对象运行时，也是生成代码面向的对象模型。
 
-NEOioic（代码标识 `neoioic`）由赵平智设计的 OIOIC（道智编程）发展而来，原名来自 Open、Input、Output、Interact、Close。本仓库固定其基于 OIOIC 1.0.18 演进的核心源码，并将已摘选的继承示例迁移至 NEOioic API，采用 C11、UTF-8、统一结果类型和 Linux 风格命名。上游旧 oicc 只有预编译程序，没有工具源码；本项目不分发或依赖这些旧程序。
+OpenOICC 面向 [NEOioic](https://github.com/neoioic/neoioic)（代码标识 `neoioic`）。本仓库固定其核心源码，并将已摘选的继承示例迁移至 NEOioic API，采用 C11、UTF-8、统一结果类型和 Linux 风格命名。上游旧 oicc 只有预编译程序，没有工具源码；本项目不分发或依赖这些旧程序。
 
 OpenOICC 专为 NEOioic 服务。NEOioic 未来可能有破坏兼容性的更新；生成契约以仓库内固定的运行时版本为准，不承诺兼容历史 OIOIC 或任意未来版本。升级依赖时须同步适配工具、生成模板、构造辅助代码、示例及测试，不添加旧 API 兼容层。
 

@@ -60,7 +60,7 @@ python tests/test_openoicc.py --openoicc build/linux/x86_64/debug/openoicc --cc 
 
 只有默认分支的推送在全部八项任务成功后更新 Nightly；其他分支、PR 和手动运行只验证。工作流的构建任务仅有读取权限，发布任务使用 `GITHUB_TOKEN` 的 `contents: write` 权限，无需额外密钥。同一分支的新运行会取消旧运行，发布前也会核对默认分支当前提交，防止旧产物覆盖新产物。
 
-首次发布创建小写 `nightly` 标签和名为 `Nightly` 的预发行版；以后移动同一标签、覆盖两个同名附件并更新说明，保留原发行版，不按提交新增 Release。压缩包名称按发布约定保留为 `oicc-x86_64-windows.zip`、`oicc-x86_64-linux.zip`，其中可执行文件仍使用正式命令名 `openoicc.exe`、`openoicc`。两个包只包含 GCC Release 可执行文件、项目及运行时许可、第三方声明和提交信息；Clang 参与验证，不发布。Linux ZIP 保留可执行权限。
+首次发布创建小写 `nightly` 标签和名为 `Nightly` 的预发行版；以后移动同一标签、覆盖两个同名附件并更新说明，保留原发行版，不按提交新增 Release。压缩包名称按发布约定保留为 `openoicc-x86_64-windows.zip`、`openoicc-x86_64-linux.zip`，其中可执行文件仍使用正式命令名 `openoicc.exe`、`openoicc`。两个包只包含 GCC Release 可执行文件、项目及运行时许可、第三方声明和提交信息；Clang 参与验证，不发布。Linux ZIP 保留可执行权限。
 
 GitHub 附件替换不是事务：上传中断可能留下部分更新的附件；重新运行该默认分支提交的工作流可重试。仓库若启用禁止移动 `nightly` 标签的规则或不可变发行版设置，需为此滚动预发行版配置允许更新的规则。平台验证结果以实际 Actions 日志为准，以下本地记录不代表该矩阵已在 GitHub 执行。
 

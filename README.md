@@ -1,6 +1,6 @@
 # OpenOICC
 
-OpenOICC 是面向 NEOioic 的节点与构造代码生成工具，使用 C11 和 NEOioic 对象模型实现。它读取节点继承声明，生成面向当前 NEOioic API 的 C 构造代码，并提供节点骨架创建能力。正式名称写作 OpenOICC，命令、文件名和代码标识使用 `openoicc`，输入语法保留 `<oicc>` 标记。
+OpenOICC 是面向 [NEOioic](https://github.com/neoioic/neoioic) 的节点与构造代码生成工具，使用 C11 和 NEOioic 对象模型实现。它读取节点继承声明，生成面向当前 NEOioic API 的 C 构造代码，并提供节点骨架创建能力。正式名称写作 OpenOICC，命令、文件名和代码标识使用 `openoicc`，输入语法保留 `<oicc>` 标记。
 
 NEOioic（代码标识 `neoioic`）由 OIOIC 发展而来，未来可能发生不兼容的 API 更新。OpenOICC 以仓库内固定的 NEOioic 版本为生成目标，随其契约演进，不承诺兼容历史 OIOIC 或任意未来版本。升级运行时时须同步检查生成模板、构造辅助代码和行为验证。
 

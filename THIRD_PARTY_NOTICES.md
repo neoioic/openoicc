@@ -1,6 +1,6 @@
 # 第三方来源与许可
 
-本项目使用由赵平智设计的 OIOIC 发展而来的 NEOioic。核心已同步为 NEOioic 工作区快照；继承示例仍源于 OIOIC 1.0.18 的提交 `9dad644e8bae1fbdba4ced0965627dda06c3e7e3`，仅迁移至 NEOioic API。具体基线、工作区状态及校验值见来源记录。
+本项目面向 [NEOioic](https://github.com/neoioic/neoioic)。核心已同步为 NEOioic 工作区快照；继承示例仍源于 OIOIC 1.0.18 的提交 `9dad644e8bae1fbdba4ced0965627dda06c3e7e3`，仅迁移至 NEOioic API。具体基线、工作区状态及校验值见来源记录。
 
 | 范围 | 来源内容 | 许可 |
 | --- | --- | --- |

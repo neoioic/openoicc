@@ -55,31 +55,20 @@ void project_clear(struct em_project *project)
 		if (node->temporary)
 			remove(node->temporary);
 		free(node->temporary);
+		free((char *)node->path);
 	}
 	free(project->nodes);
 	free(project->reach);
 	*project = (struct em_project){ 0 };
 }
 
-int project_execute(struct em_project *project, const struct project_request *request)
+static int project_update(struct em_project *project, const struct project_request *request,
+	const unsigned char *targets, const struct node *host)
 {
 	size_t i;
-	if (!request || request->count < 1 || !request->paths || project->nodes)
-		return 0;
-	project->nodes = calloc((size_t)request->count, sizeof(*project->nodes));
-	if (!project->nodes)
-		return 0;
-	project->count = (size_t)request->count;
-	for (i = 0; i < project->count; i++) {
-		project->nodes[i].path = request->paths[i];
-		if (!node_parse(project->nodes + i))
-			return 0;
-	}
-	if (!graph_validate(project))
-		return 0;
 	for (i = 0; i < project->count; i++) {
 		struct node *node = project->nodes + i;
-		if (!node_generate(project, i))
+		if (!(targets && !targets[i] ? node_erase(node) : node_generate(project, i)))
 			return node_diagnostic(node, 0, "cannot generate constructor");
 		if (node->output.length == node->source.length &&
 		    !memcmp(node->output.data, node->source.data, node->source.length))
@@ -91,6 +80,15 @@ int project_execute(struct em_project *project, const struct project_request *re
 	/* Recheck all originals before the first commit to catch ordinary edits. */
 	if (!request->write)
 		return 1;
+	if (host) {
+		struct text current = { 0 };
+		int same = file_read(host->path, &current) &&
+			current.length == host->source.length &&
+			!memcmp(current.data, host->source.data, current.length);
+		free(current.data);
+		if (!same)
+			return node_diagnostic(host, 0, "host changed during generation; no files committed");
+	}
 	for (i = 0; i < project->count; i++) {
 		struct node *node = project->nodes + i;
 		struct text current = { 0 };
@@ -112,6 +110,63 @@ int project_execute(struct em_project *project, const struct project_request *re
 		node->temporary = NULL;
 	}
 	return 1;
+}
+
+int project_execute(struct em_project *project, const struct project_request *request)
+{
+	struct node host = { 0 };
+	struct text path = { 0 };
+	unsigned char *targets = NULL;
+	int ok = 0;
+	if (!request || project->nodes)
+		return 0;
+	if (request->directory) {
+		if (!text_printf(&path, "%s/ho.c", request->directory))
+			goto done;
+		if (!file_regular(path.data)) {
+			path.length = 0;
+			if (!text_printf(&path, "%s/host.c", request->directory))
+				goto done;
+		}
+		host.path = path.data;
+		if (!file_read(host.path, &host.source)) {
+			node_diagnostic(&host, 0, "cannot read host source (ho.c or host.c)");
+			goto done;
+		}
+		if (!project_collect(project, request->directory)) {
+			fprintf(stderr, "%s: cannot collect marked node sources\n", request->directory);
+			goto done;
+		}
+	} else {
+		if (request->count < 1 || !request->paths)
+			goto done;
+		project->nodes = calloc((size_t)request->count, sizeof(*project->nodes));
+		if (!project->nodes)
+			goto done;
+		project->count = (size_t)request->count;
+		for (size_t i = 0; i < project->count; i++) {
+			struct text owned = { 0 };
+			if (!text_append(&owned, request->paths[i], strlen(request->paths[i])))
+				goto done;
+			project->nodes[i].path = owned.data;
+		}
+	}
+	for (size_t i = 0; i < project->count; i++)
+		if (!node_parse(project->nodes + i))
+			goto done;
+	if (!graph_validate(project))
+		goto done;
+	if (request->directory) {
+		targets = calloc(project->count, 1);
+		if (!targets || !host_targets(project, &host, targets))
+			goto done;
+	}
+	ok = project_update(project, request, targets, request->directory ? &host : NULL);
+done:
+	free(targets);
+	free(host.source.data);
+	free(path.data);
+	return ok;
 }
 
 static int project_open(struct object *self, const struct vr *caller_context)

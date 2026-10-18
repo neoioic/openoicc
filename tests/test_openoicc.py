@@ -69,7 +69,9 @@ class OpenoiccTest(unittest.TestCase):
     def test_cli(self):
         self.assertIn("Usage: openoicc new", self.invoke("--help").stdout)
         self.assertEqual(self.invoke("--version").stdout.strip(), "OpenOICC 0.1.0")
-        for argv in [(), ("wat",), ("generate",), ("generate", "--write"),
+        for option in ["-h", "-help"]:
+            self.assertEqual(self.invoke(option).stdout, self.invoke("--help").stdout)
+        for argv in [("wat",), ("generate",), ("generate", "--write"),
                      ("new", "a"), ("check", "--wat")]:
             with self.subTest(argv=argv):
                 self.assertEqual(self.invoke(*argv, success=False).returncode, 2)
@@ -92,6 +94,122 @@ class OpenoiccTest(unittest.TestCase):
                 dest = self.work / filename
                 self.invoke("new", name, dest, bases, success=False)
                 self.assertFalse(dest.exists())
+
+    def test_typed_node_creation(self):
+        self.invoke("MO", "Demo", self.work)
+        host = self.work / "mo/Demo"
+        for name in ["Demo.c", "Demo.h", "ho.c", "ho.h", "se/se.h",
+                     "so/so.h", "so/go/go.h", "so/ao/ao.h", "so/ao/Main/Main.c"]:
+            self.assertTrue((host / name).is_file(), name)
+            self.assertNotIn(b"\r", (host / name).read_bytes())
+        self.invoke("GO", "car", host)
+        self.invoke("ao", "worker", host)
+        self.assertTrue((host / "so/go/car/car.h").is_file())
+        self.invoke(host)
+        snapshots = {p: p.read_bytes() for p in host.rglob("*") if p.is_file()}
+        for kind, name in [("go", "CAR"), ("ao", "car"), ("go", "Demo"),
+                           ("go", "ho"), ("go", "SO"), ("go", "NEOioic")]:
+            self.invoke(kind, name, host, success=False)
+        self.assertEqual(snapshots, {p: p.read_bytes() for p in host.rglob("*") if p.is_file()})
+        self.invoke("mo", "Demo", self.work, success=False)
+        for kind in ["co", "ro"]:
+            self.invoke(kind, "module", self.work)
+            self.assertTrue((self.work / kind / "module/ho.c").exists())
+            self.assertFalse((self.work / kind / "module/so/ao/Main").exists())
+        result = run([EXE, "mo", "Second"], cwd=self.work / "mo")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue((self.work / "mo/Second/Second.c").exists())
+        self.invoke("mo", "Third", str(self.work / "mo") + "/")
+        self.assertTrue((self.work / "mo/Third/Third.c").exists())
+
+    def test_typed_host_lifecycle(self):
+        self.invoke("co", "Demo", self.work)
+        host = self.work / "co/Demo"
+        self.invoke("go", "car", host)
+        header = host / "ho.h"
+        header.write_text(header.read_text(encoding="utf-8").replace(
+            "#endif", "#define OID_HO (OID_OS | UINT64_C(0x20000))\n"
+            "#define OID_ (OID_HO | UINT64_C(0xfff9))\n#define MSN_CAR MSN_\n#endif"),
+            encoding="utf-8")
+        source = host / "ho.c"
+        source.write_text(source.read_text(encoding="utf-8").replace(
+            "struct object *created;", "extern int crt_car(uint64_t *, unsigned int, "
+            "unsigned int, int, struct object **, unsigned char *);\n\tstruct object *created;").replace(
+            "switch (model_id) {", "switch (model_id) {\n\tcase MSN_CAR:\n"
+            "\t\tresult = crt_car(&oid, input_capacity, output_capacity, caller_capacity, "
+            "object_out, exotic_memory);\n\t\tbreak;"), encoding="utf-8")
+        self.invoke(host)
+        executable = self.work / "host.exe"
+        self.compile(executable, [*host.rglob("*.c"), ROOT / "tests/scaffold.c",
+                                  *list((ROOT / "third_party/neoioic/src").glob("*.c"))],
+                     ["-I", host])
+        result = run([executable])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_directory_targets_and_stale_constructors(self):
+        a, b = self.write("a"), self.write("b", "a")
+        self.invoke("generate", "--write", a, b)
+        host = self.work / "ho.c"
+        text = ('#include "neoioic.h"\n'
+                'int host_create_object(void) {\n'
+                'extern int crt_a(void);\n'
+                '/* crt_a(); */\nconst char *s = "crt_a()";\n'
+                'return crt_b();\n}\n'
+                'int unrelated(void) { return crt_a(); }\n')
+        host.write_text(text, encoding="utf-8")
+        (self.work / "unmarked.c").write_text('const char *s = "<oicc>";\n')
+        self.invoke(self.work)
+        self.assertNotIn("int crt_a", a.read_text())
+        self.assertIn("int crt_b", b.read_text())
+        self.assertEqual(host.read_text(), text)
+        snapshot = {p: p.read_bytes() for p in self.work.glob("*.c")}
+        result = run([EXE], cwd=self.work)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(snapshot, {p: p.read_bytes() for p in self.work.glob("*.c")})
+        host.write_text('int host_create_object(void) { return crt_b(crt_a()); }\n')
+        self.invoke(self.work)
+        self.assertIn("int crt_a", a.read_text())
+        host.write_text('int host_create_object(void) { return 0; }\n')
+        self.invoke(self.work)
+        self.assertNotIn("int crt_b", b.read_text())
+        host.rename(self.work / "host.c")
+        self.invoke(self.work)
+
+    def test_directory_errors_preserve_all_sources(self):
+        a, b = self.write("a"), self.write("b", "a")
+        host = self.work / "ho.c"
+        for source in ['int host_create_object(void) { return crt_missing(); }\n',
+                       'int other(void) { return 0; }\n',
+                       'int host_create_object(void) { return crt_a(); }\n'
+                       'int host_create_object(void) { return crt_b(); }\n',
+                       '#if 0\nint host_create_object(void) { return crt_a(); }\n#endif\n',
+                       '#define CREATE crt_a\nint host_create_object(void) { return CREATE(); }\n',
+                       'int host_create_object(void) { return crt_a; }\n']:
+            host.write_text(source)
+            snapshot = {p: p.read_bytes() for p in self.work.glob("*.c")}
+            self.invoke(self.work, success=False)
+            self.assertEqual(snapshot, {p: p.read_bytes() for p in self.work.glob("*.c")})
+            self.assertFalse(list(self.work.rglob("*.tmp")))
+        host.write_text('int host_create_object(void) { return crt_a(); }\n')
+        b.write_text(b.read_text().replace("<ibn> a", "<ibn> missing"))
+        snapshot = a.read_bytes()
+        self.invoke(self.work, success=False)
+        self.assertEqual(snapshot, a.read_bytes())
+
+    def test_directory_reference_behavior(self):
+        reference = self.work / "reference"
+        shutil.copytree(ROOT / "examples/oioic_reference", reference)
+        files = [*reference.rglob("*.c"), *list((ROOT / "third_party/neoioic/src").glob("*.c"))]
+        executable = self.work / "reference.exe"
+        self.compile(executable, files)
+        original = run([executable])
+        self.assertEqual(original.returncode, 0, original.stderr)
+        self.invoke(reference)
+        self.compile(executable, files)
+        updated = run([executable])
+        self.assertEqual(updated.returncode, 0, updated.stderr)
+        self.assertEqual(updated.stdout, original.stdout)
+        self.assertNotIn("int crt_vehicle", (reference / "so/go/vehicle/vehicle.c").read_text(encoding="utf-8"))
 
     def test_preservation_and_idempotence(self):
         for newline in ["\n", "\r\n"]:
@@ -250,10 +368,13 @@ class OpenoiccTest(unittest.TestCase):
         other = self.write("b", "a")
         header = path.with_suffix(".h")
         header.write_bytes(b'#ifndef A_H\n#define A_H\nstruct em_a { int x; };\n#endif\n')
+        host = self.work / "ho.c"
+        host.write_text('int host_create_object(void) { return crt_b(); }\n')
         created = self.work / "created.c"
         for command in [["generate", "--write", path, other],
-                        ["new", "created", created]]:
-            snapshots = {p: p.read_bytes() for p in [path, other]}
+                        ["new", "created", created], [self.work],
+                        ["co", "Sample", self.work]]:
+            snapshots = {p: p.read_bytes() for p in [path, other, host, header]}
             result = run([instrumented, *command])
             self.assertEqual(result.returncode, 0, result.stderr)
             total = int(re.search(r"test allocations: (\d+) live: 0", result.stderr).group(1))
@@ -261,6 +382,8 @@ class OpenoiccTest(unittest.TestCase):
                 p.write_bytes(data)
             if created.exists():
                 created.unlink()
+            if (self.work / "co").exists():
+                shutil.rmtree(self.work / "co")
             for failure in range(1, total + 1):
                 env = os.environ.copy()
                 env["OPENOICC_TEST_FAIL_ALLOC"] = str(failure)
@@ -272,7 +395,8 @@ class OpenoiccTest(unittest.TestCase):
                     for p, data in snapshots.items():
                         self.assertEqual(p.read_bytes(), data)
                     self.assertFalse(created.exists())
-                    self.assertFalse(list(self.work.glob("*.tmp")))
+                    self.assertFalse((self.work / "co").exists())
+                    self.assertFalse(list(self.work.rglob("*.tmp")))
 
     def test_bootstrap_regeneration(self):
         copied = self.work / "src"

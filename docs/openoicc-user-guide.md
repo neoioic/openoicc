@@ -18,7 +18,39 @@ Linux 的配置命令为 `xmake f -P . --toolchain=gcc -m debug`，后续命令�
 
 构建不会自动将程序安装到 PATH。下文统一通过 `xmake run -P . openoicc` 调用，命令均从仓库根目录执行。也可以直接运行 `build/<plat>/<arch>/<mode>/openoicc`，Windows 文件名带 `.exe`。
 
-## 最小示例：创建、生成、编译
+## 分类节点与宿主目录构造
+
+类型 `go/ao/co/ro/mo` 不区分大小写，目录参数省略时使用当前目录。例如在已有的 `build/` 中创建 MO 宿主，再添加 GO 节点：
+
+```sh
+xmake run -P . openoicc mo Demo build
+xmake run -P . openoicc go boat build/mo/Demo
+```
+
+宿主位于 `build/mo/Demo`，含 `ho.c/ho.h`、Demo 节点、`se` 与 `so/go`、`so/ao`；MO 还包含 `so/ao/Main` 入口。CO、RO 的骨架没有 Main。GO、AO 位于指定宿主的 `so/类型/名称`。分类名称和 `ho/so/se/ce/re/OIOIC/NEOioic` 保留，不允许同一宿主内重名或覆盖。
+
+在 `ho.h` 定义应用的 `OID_HO`、`OID_` 和各 `MSN_*`，并引入所需成员头文件；在 `ho.c` 的 `host_create_object` 中手工声明构造器、添加调用分支。例如 boat：
+
+```c
+/* 放在 host_create_object 函数内。 */
+extern int crt_boat(uint64_t *, unsigned int, unsigned int, int,
+		    struct object **, unsigned char *);
+/* 放在 switch (model_id) 中。 */
+case MSN_BOAT:
+	result = crt_boat(&oid, input_capacity, output_capacity,
+		caller_capacity, object_out, exotic_memory);
+	break;
+```
+
+再运行目录构造：
+
+```sh
+xmake run -P . openoicc build/mo/Demo
+```
+
+该命令**直接更新源码**：递归读取节点注释标记，只生成宿主创建函数里直接调用的构造器，清空其他节点构造区；业务代码和宿主创建分支不变。只作为基节点使用的节点也要保留源文件和业务实现，但不必在宿主中添加独立创建分支。在宿主目录直接运行 `openoicc` 效果相同。宏、条件编译和间接构造器调用不在支持范围，完整约束见 [生成契约](openoicc.md)。编译时加入仓库 `include/`、NEOioic `include/`，并链接宿主、入口、节点与运行时源码。
+
+## 单文件最小示例：创建、生成、编译
 
 先创建空目录 `build/quickstart/`（PowerShell：`New-Item -ItemType Directory build/quickstart`；Linux：`mkdir -p build/quickstart`），再创建节点：
 
@@ -105,7 +137,7 @@ xmake run -P . openoicc new amphibian build/quickstart/amphibian.c "car, ship"
 xmake run -P . openoicc generate --write build/quickstart/vehicle.c build/quickstart/car.c build/quickstart/ship.c build/quickstart/amphibian.c
 ```
 
-所有非根祖先的 `.c` 都须显式列出，包括间接祖先；工具不自动搜索目录。编译前还需为各节点定义非零、唯一且不超过 `USHRT_MAX` 的 `MSN_*` 编号。共享祖先各只有一份；席位容量及单线程委托边界见 [生成契约](openoicc.md)。
+使用显式文件 `check/generate` 时，所有非根祖先的 `.c` 都须列出，包括间接祖先；这两个命令不自动搜索目录。编译前还需为各节点定义非零、唯一且不超过 `USHRT_MAX` 的 `MSN_*` 编号。共享祖先各只有一份；席位容量及单线程委托边界见 [生成契约](openoicc.md)。
 
 如需 boat 的自有成员，可在 `boat.c` 构造区外的文件作用域定义：
 
@@ -152,4 +184,4 @@ struct em_boat {
 
 退出码为 0（成功）、1（输入、生成或文件操作失败）和 2（命令用法错误）。源码校验诊断通常给出文件、行、列及原因。只处理普通文件，拒绝文件符号链接和 Windows reparse point。Windows 当前使用窄字符路径接口，不能保证任意 Unicode 路径。
 
-OpenOICC 不执行完整 C 预处理，不替代 C 编译器，也不提供历史 oicc API 兼容层。原 oicc 二进制未收录；当前行为对照以仓库参考构造器和运行时为准。详细边界、自举再生和测试方式见 [生成契约](openoicc.md)、[测试说明](../tests/README.md)。
+OpenOICC 不执行完整 C 预处理，不替代 C 编译器，也不提供历史 oicc API 兼容层。分类创建和目录构造已依据原工具帮助、创建结果与教程核对；安全修复采用当前 NEOioic 契约。原程序不随项目分发，构造行为回归以仓库参考构造器和运行时为准，原二进制差分验证的限制见 [核对记录](oicc-comparison.md)。详细边界、自举再生和测试方式见 [生成契约](openoicc.md)、[测试说明](../tests/README.md)。

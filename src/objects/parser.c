@@ -178,7 +178,7 @@ static int source_valid(struct node *node)
 	return 1;
 }
 
-static int mask_source(struct node *node, struct text *mask, int markers)
+int source_mask(struct node *node, struct text *mask, int markers, int *marked)
 {
 	size_t i = 0;
 	int state = 0;
@@ -208,6 +208,12 @@ static int mask_source(struct node *node, struct text *mask, int markers)
 				while (i < mask->length && data[i] != '\n')
 					i++;
 			}
+			if (marked && !*marked)
+				for (size_t pos = start + 2; i - pos >= 6; pos++)
+					if (!memcmp(data + pos, "<oicc>", 6)) {
+						*marked = 1;
+						break;
+					}
 			if (markers && !comment_tags(node, start, i, block, &state))
 				return 0;
 		} else if (quote == '"' || quote == '\'') {
@@ -333,9 +339,9 @@ int node_parse(struct node *node)
 	node->name[length - 2] = 0;
 	if (!node_name_valid(node->name))
 		return node_diagnostic(node, 0, "invalid or reserved node name");
-	if (!file_read(node->path, &node->source))
+	if (!node->source.data && !file_read(node->path, &node->source))
 		return node_diagnostic(node, 0, "cannot read regular source file");
-	if (!mask_source(node, &mask, 1))
+	if (!source_mask(node, &mask, 1, NULL))
 		goto done;
 	memset(mask.data + node->begin, ' ', node->end - node->begin);
 	/* Constructors are file-scope definitions. Never accept boundaries inside
@@ -368,30 +374,23 @@ int node_parse(struct node *node)
 			goto done;
 		}
 	}
-	definitions = member_definitions(mask.data, node->name);
-	if (definitions < 0 || definitions > 1) {
-		node_diagnostic(node, 0, "duplicate or unsupported member declaration");
-		goto done;
-	}
-	int mentioned = member_token(mask.data, node->name);
-	if (member_macro(mask.data, node->name)) {
-		node_diagnostic(node, 0, "macro member declarations are unsupported");
-		goto done;
-	}
-	struct text binding = { 0 };
-	if (!text_printf(&binding, "tog_%s", node->name))
-		goto done;
 	int bindings = 0;
-	for (p = mask.data; (p = strstr(p, binding.data)); p += binding.length) {
+	for (p = mask.data; (p = strstr(p, "tog_")); p += 4) {
+		const char *suffix = p + 4;
+		size_t name_length = strlen(node->name), k;
+		for (k = 0; k < name_length && suffix[k]; k++)
+			if (tolower((unsigned char)suffix[k]) != tolower((unsigned char)node->name[k]))
+				break;
+		if (k != name_length || isalnum((unsigned char)suffix[k]) || suffix[k] == '_')
+			continue;
 		const char *line = p;
 		while (line > mask.data && line[-1] != '\n')
 			line--;
 		if (memchr(line, '#', (size_t)(p - line))) {
 			node_diagnostic(node, (size_t)(p - mask.data), "macro binding declarations are unsupported");
-			free(binding.data);
 			goto done;
 		}
-		const char *q = skip_space(p + binding.length);
+		const char *q = skip_space(suffix + name_length);
 		if (*q != '(' || (p > mask.data && (isalnum((unsigned char)p[-1]) || p[-1] == '_')))
 			continue;
 		const char *type = p;
@@ -402,12 +401,23 @@ int node_parse(struct node *node)
 		     (isalnum((unsigned char)type[-5]) || type[-5] == '_')))
 			continue;
 		q = strchr(q, ')');
-		if (q && *skip_space(q + 1) == '{')
+		if (q && *skip_space(q + 1) == '{') {
 			bindings++;
+			memcpy(node->name, suffix, name_length);
+		}
 	}
-	free(binding.data);
 	if (bindings != 1) {
 		node_diagnostic(node, 0, "expected exactly one tog binding definition");
+		goto done;
+	}
+	definitions = member_definitions(mask.data, node->name);
+	if (definitions < 0 || definitions > 1) {
+		node_diagnostic(node, 0, "duplicate or unsupported member declaration");
+		goto done;
+	}
+	int mentioned = member_token(mask.data, node->name);
+	if (member_macro(mask.data, node->name)) {
+		node_diagnostic(node, 0, "macro member declarations are unsupported");
 		goto done;
 	}
 	if (!text_append(&header_path, node->path, strlen(node->path) - 1) ||
@@ -416,7 +426,7 @@ int node_parse(struct node *node)
 	header.path = header_path.data;
 	if (file_regular(header.path)) {
 		if (!file_read(header.path, &header.source) ||
-		    !mask_source(&header, &header_mask, 0))
+		    !source_mask(&header, &header_mask, 0, NULL))
 			goto done;
 		/* Only a conventional outer include guard is supported in headers. */
 		int conditionals = 0, endings = 0;

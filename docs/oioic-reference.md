@@ -80,4 +80,4 @@ OBS 先基节点后自身，SBO 先自身后基节点；专用中性结果表示
 | GetBN、GetEMofBN | `get_base_node`、`get_base_members` |
 | InitAIBofND、InitABNofND | `init_direct_bases`、`init_base_nodes` |
 
-旧工具不能自动满足当前命名、对齐、席位边界、外部存储初始化及失败清理约束。OpenOICC 直接生成当前规范，不提供历史 API 兼容层。历史教程和预编译工具不参与构建或自举。
+旧工具不能自动满足当前命名、对齐、席位边界、外部存储初始化及失败清理约束。OpenOICC 直接生成当前规范，不提供历史 API 兼容层。分类创建、标记与宿主选择职责的核对，以及安全报告覆盖的契约取舍，见 [原工具功能核对](oicc-comparison.md)。历史教程和预编译工具不参与构建或自举。

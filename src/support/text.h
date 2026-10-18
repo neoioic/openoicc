@@ -15,4 +15,10 @@ int file_read(const char *path, struct text *text);
 int file_prepare(const char *path, const struct text *text, char **temporary);
 int file_commit(const char *path, const char *temporary, int replace);
 int file_regular(const char *path);
+int file_directory(const char *path);
+int directory_create(const char *path);
+int directory_remove(const char *path);
+int directory_current(struct text *path);
+int directory_visit(const char *path,
+	int (*visit)(const char *, void *), void *context);
 #endif

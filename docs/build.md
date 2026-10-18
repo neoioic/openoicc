@@ -77,3 +77,5 @@ GitHub 附件替换不是事务：上传中断可能留下部分更新的附件�
 同日更名与文档核对：正式名称统一为 OpenOICC，构建目标、命令、公共头文件目录及测试入口统一为 `openoicc`；输入 `<oicc>` 标记不变。更名后 Windows MinGW Debug/Release 各 36 个测试全部通过（约 53 秒、80 秒）。随后仅调整版本显示和生成代码署名为正式大小写，两种配置重新构建，并分别复测命令行与自举再生通过。用户指南的最小示例从文档提取后实际生成、编译及运行成功，输出 `boat lifecycle passed`；GCC 对原运行时给出已有的未使用参数警告。本地 Markdown 链接、LF 和差异空白检查通过。
 
 2026-10-17：OpenOICC 明确面向 NEOioic，并同步仓库内运行时快照、根节点名称和生成 API。Windows x86_64、MinGW-w64 GCC 下，按上述命令构建工具和参考程序的 Debug/Release，两种配置的参考程序均运行成功；完整回归各 36 项通过（约 64 秒、97 秒），包含生成代码运行、失败清理和自举重编译。显式检查自身构造区再生无差异；从用户指南提取最小示例后重新生成、编译并运行，输出 `boat lifecycle passed`。运行时来源校验值（允许 LF 规范化）、本地 Markdown 链接、UTF-8/LF 和 `git diff --check` 均通过。本次未执行 Linux、Clang 或 GitHub Actions 验证。
+
+2026-10-18：补齐分类节点创建和按宿主创建函数选择构造器的目录更新。Windows x86_64、MinGW-w64 GCC 下，按上述命令构建 Debug/Release，并分别执行完整回归，最终代码各 41 项全部通过（约 120 秒、167 秒）。包含目录更新前后的参考程序编译与业务输出对照、新宿主动态/外部存储生命周期、OID 耗尽与回收、四条操作路径的逐分配点故障注入，以及自举再生和重编译。新增目录/宿主模块和文件辅助实现另通过 `gcc -std=c11 -Wall -Wextra -Wpedantic -Ithird_party/neoioic/include -Iinclude -fsyntax-only src/objects/directory.c src/objects/host.c src/objects/scaffold.c src/support/text.c`，无诊断。原工具核对证据和安全契约取舍见 [功能核对](oicc-comparison.md)。本次未执行 Linux、Clang 或 GitHub Actions 验证。

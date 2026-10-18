@@ -13,6 +13,9 @@ OpenOICC 是使用 C11 与 NEOioic 实现的控制台工具。应用宿主管理
 ```sh
 xmake -P . openoicc
 xmake run -P . openoicc --help
+xmake run -P . openoicc mo Demo build
+xmake run -P . openoicc go car build/mo/Demo
+xmake run -P . openoicc build/mo/Demo
 xmake run -P . openoicc new boat path/to/boat.c
 xmake run -P . openoicc new amphibian path/to/amphibian.c "car, ship"
 xmake run -P . openoicc check path/to/car.c path/to/ship.c path/to/amphibian.c
@@ -20,9 +23,15 @@ xmake run -P . openoicc generate path/to/car.c path/to/ship.c path/to/amphibian.
 xmake run -P . openoicc generate --write path/to/car.c path/to/ship.c path/to/amphibian.c
 ```
 
-`new` 创建 UTF-8、LF、无自有成员的九接口骨架，默认直接基节点为 `NEOioic`。目标目录须已存在，文件名须与节点名一致，不覆盖已有文件。继承列表作为一个逗号分隔的参数传入；创建时校验语法，基节点是否存在由项目校验负责。节点名采用 ASCII 字母开头、随后字母/数字/下划线的名称，根名 `NEOioic` 的所有大小写变体保留。
+`-h`、`-help`、`--help` 显示同一帮助。`openoicc go|ao|co|ro|mo NAME [DIRECTORY]` 创建分类节点，类型不区分大小写，目录默认当前目录。`co/ro/mo` 在 `DIRECTORY/类型/名称` 创建宿主；目录末项已经是该类型时不再重复。宿主包含同名节点、`ho.c/ho.h`、`se`、`so/go`、`so/ao`；`mo` 另有 `so/ao/Main` 入口。`go/ao` 在指定宿主的 `so/类型/名称` 创建节点。节点初始继承 `NEOioic`，提供九接口、头文件和空构造区。只生成有职责的源码及分组头文件，不生成空分组 `.c` 或历史模板注释。
 
-`check` 解析并校验全部输入，计算构造输出，报告会改变的文件，不写入。`generate` 默认同样只报告计划，只有 `--write` 提交更新。所有非根基节点的 `.c` 必须显式列出，参数顺序不影响同一节点的输出。每个文件对应一个节点；节点名为文件名去掉 `.c`。同名节点和大写后冲突的 `MSN_*` 名称都报错。
+分类创建保留 `go/ao/co/ro/mo/ho/so/se/ce/re/OIOIC/NEOioic` 的全部大小写变体，同一宿主的 go/ao 节点名称不得相互冲突，也不得与宿主同名。不覆盖已有内容；创建失败清理本次新建的文件与目录，清理失败报告路径。宿主骨架需要用户补充 OID、模型编号、成员头文件、构造器声明与创建分支，才能编译运行。
+
+`openoicc [DIRECTORY]` 进入目录构造模式，默认当前目录，**直接写入**。读取宿主 `ho.c`（不存在时尝试 `host.c`），递归收集含注释 `<oicc>` 标记的 `.c` 文件，校验完整继承图。只为 `host_create_object` 函数体中直接调用的 `crt_name(...)` 生成构造器，清空其他节点的 `<crt>` 内容；这些节点仍可作为基节点参与派生对象构造。宿主创建分支由用户维护，工具不修改宿主。函数中的局部 `extern int crt_name(...)` 声明、注释、字符串及其他函数里的调用均不选择目标。构造器调用须直接书写，不支持宏展开、函数指针或间接选择；条件编译和不明确的宿主定义报错。扫描包含子目录中的全部 `.c`，请将构建副本放在宿主目录外；不跟随目录链接，无标记文件仍须符合支持的 C 文本词法规则。
+
+`new` 创建 UTF-8、LF、无自有成员的单文件九接口骨架，默认直接基节点为 `NEOioic`。目标目录须已存在，文件名须与节点名一致，不覆盖已有文件。继承列表作为一个逗号分隔的参数传入；创建时校验语法，基节点是否存在由项目校验负责。节点名采用 ASCII 字母开头、随后字母/数字/下划线的名称，根名 `NEOioic` 的所有大小写变体保留。
+
+`check` 解析并校验全部输入，计算构造输出，报告会改变的文件，不写入。`generate` 默认同样只报告计划，只有 `--write` 提交更新。这两个显式文件命令为每个输入生成构造器，所有非根基节点的 `.c` 必须显式列出，参数顺序不影响同一节点的输出。每个文件对应一个节点；文件名去掉 `.c` 后与 `tog_name` 的后缀须不区分大小写相同，实际节点名取绑定后缀的拼写（例如 `Main.c` 中的 `tog_main`）。同名节点和大写后冲突的 `MSN_*` 名称都报错。
 
 退出码：0 成功，1 输入/构造/文件操作失败，2 命令用法错误。源码校验诊断通常包含文件、行、列及原因；部分名称和图诊断指向文件起点，命令或资源错误可能只有原因。成功校验并不替代 C 编译和业务行为验证。
 
@@ -79,4 +88,4 @@ xmake run -P . openoicc generate --write src/objects/project.c
 
 ## 原工具一致性边界
 
-仓库没有原 oicc 二进制或其源码，且指南要求不依赖它、不提供旧 API 兼容层。因此当前不能声称与原二进制的命令、输出字节或所有行为一致。已执行的对照是：复制仓库参考示例，分别运行原参考构造器和新生成构造器，对比 11 项业务输出，并检查节点顺序、祖先共享、席位及生命周期行为。将来如有经授权提供的二进制、操作契约及样例，可另建隔离的差分验证；不会执行来源不明的旧程序或覆盖参考快照。
+已按原工具帮助、节点标记及宿主创建函数核对并补齐分类创建、默认目录构造与所需构造器选择。内部名称采用当前 NEOioic API，不提供旧 API 兼容层；安全报告涉及的队列、布局、容量与生命周期差异保留 NEOioic 的修复契约。核对证据、安全条目对应关系及尚未完成的原二进制差分验证见 [原工具功能核对](oicc-comparison.md)。不能据此宣称输出字节或所有行为完全一致。旧二进制不分发、不参与构建、自举或常规测试。

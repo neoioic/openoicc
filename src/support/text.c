@@ -9,11 +9,15 @@
 #include <string.h>
 #include <stdarg.h>
 #include <sys/stat.h>
+#include <dirent.h>
+#include <errno.h>
+#include <limits.h>
 #ifdef _WIN32
 #include <windows.h>
 #include <io.h>
 #define get_process_id _getpid
 #include <process.h>
+#include <direct.h>
 #else
 #include <unistd.h>
 #define get_process_id getpid
@@ -65,7 +69,7 @@ int text_printf(struct text *text, const char *format, ...)
 	return length;
 }
 
-int file_regular(const char *path)
+static int file_kind(const char *path, int directory)
 {
 	struct stat info;
 	if (stat(path, &info))
@@ -82,7 +86,90 @@ int file_regular(const char *path)
 #endif
 	/* S_IFMT/S_IFREG are optional visibility macros in strict C modes;
 	 * S_ISREG is the POSIX portable predicate for the same check. */
-	return S_ISREG(info.st_mode);
+	return directory ? S_ISDIR(info.st_mode) : S_ISREG(info.st_mode);
+}
+
+int file_regular(const char *path)
+{
+	return file_kind(path, 0);
+}
+
+int file_directory(const char *path)
+{
+	return file_kind(path, 1);
+}
+
+int directory_create(const char *path)
+{
+#ifdef _WIN32
+	return _mkdir(path) == 0;
+#else
+	return mkdir(path, 0777) == 0;
+#endif
+}
+
+int directory_remove(const char *path)
+{
+#ifdef _WIN32
+	return _rmdir(path) == 0;
+#else
+	return rmdir(path) == 0;
+#endif
+}
+
+int directory_visit(const char *path,
+	int (*visit)(const char *, void *), void *context)
+{
+	DIR *directory = opendir(path);
+	struct dirent *entry;
+	int ok = 1;
+	if (!directory)
+		return 0;
+	for (;;) {
+		errno = 0;
+		entry = readdir(directory);
+		if (!entry) {
+			if (errno)
+				ok = 0;
+			break;
+		}
+		struct text child = { 0 };
+		if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, ".."))
+			continue;
+		ok = text_printf(&child, "%s/%s", path, entry->d_name) &&
+			visit(child.data, context);
+		free(child.data);
+		if (!ok)
+			break;
+	}
+	if (closedir(directory))
+		ok = 0;
+	return ok;
+}
+
+int directory_current(struct text *path)
+{
+	size_t capacity = 256;
+	for (;;) {
+		char *buffer = malloc(capacity);
+		if (!buffer)
+			return 0;
+#ifdef _WIN32
+		if (capacity > INT_MAX) {
+			free(buffer);
+			return 0;
+		}
+		char *result = _getcwd(buffer, (int)capacity);
+#else
+		char *result = getcwd(buffer, capacity);
+#endif
+		int error = errno;
+		int ok = result && text_append(path, buffer, strlen(buffer));
+		free(buffer);
+		if (result || error != ERANGE || capacity > SIZE_MAX / 2)
+			return ok;
+		capacity *= 2;
+	}
 }
 
 int file_read(const char *path, struct text *text)

@@ -4,6 +4,15 @@
 #include <ctype.h>
 #include <string.h>
 
+int node_erase(struct node *node)
+{
+	const char *newline = strstr(node->source.data, "\r\n") ? "\r\n" : "\n";
+	return text_append(&node->output, node->source.data, node->begin) &&
+		text_append(&node->output, newline, strlen(newline)) &&
+		text_append(&node->output, node->source.data + node->end,
+			    node->source.length - node->end);
+}
+
 static int model_name(struct text *output, const char *name)
 {
 	if (!text_append(output, "MSN_", 4))

@@ -4,7 +4,7 @@ OpenOICC 是面向 [NEOioic](https://github.com/neoioic/neoioic) 的节点与构
 
 NEOioic（代码标识 `neoioic`）由 OIOIC 发展而来，未来可能发生不兼容的 API 更新。OpenOICC 以仓库内固定的 NEOioic 版本为生成目标，随其契约演进，不承诺兼容历史 OIOIC 或任意未来版本。升级运行时时须同步检查生成模板、构造辅助代码和行为验证。
 
-目前已实现节点骨架创建、C 注释标记解析、继承校验、构造区变更计划/更新和自举再生，并提供生成代码运行及失败清理回归。首次构建不需要其他仓库、旧 oicc 二进制或联网下载依赖。第一次使用请阅读 [OpenOICC 用户指南](docs/openoicc-user-guide.md)，完整命令、支持语法与一致性边界见 [OpenOICC 生成契约](docs/openoicc.md)。
+目前已实现 go/ao/co/ro/mo 分类骨架创建、C 注释标记解析、继承校验、按宿主创建函数选择构造器的目录更新、显式文件变更计划/更新和自举再生，并提供生成代码运行及失败清理回归。首次构建不需要其他仓库、旧 oicc 二进制或联网下载依赖。第一次使用请阅读 [OpenOICC 用户指南](docs/openoicc-user-guide.md)，完整命令、支持语法与一致性边界见 [OpenOICC 生成契约](docs/openoicc.md) 和 [原工具功能核对](docs/oicc-comparison.md)。
 
 ## 构建与运行
 
